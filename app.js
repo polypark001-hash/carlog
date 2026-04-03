@@ -74,7 +74,7 @@ function loadConfig() {
     const saved = localStorage.getItem('carlog_config');
     if (saved) return JSON.parse(saved);
   } catch(e) {}
-  return { cars: JSON.parse(JSON.stringify(DEFAULT_CARS)), adminCode: '1234' };
+  return { cars: JSON.parse(JSON.stringify(DEFAULT_CARS)), adminCode: '4317' };
 }
 
 function saveConfig() {
@@ -83,7 +83,8 @@ function saveConfig() {
 }
 
 let CONFIG = loadConfig();
-// Force update if old config has old car plates
+// Force update admin code and old config
+if (CONFIG.adminCode === '1234') { CONFIG.adminCode = '4317'; saveConfig(); }
 if (CONFIG.cars.length > 0 && CONFIG.cars[0].plate === '12가 3456') {
   CONFIG = { cars: JSON.parse(JSON.stringify(DEFAULT_CARS)), adminCode: '1234' };
   saveConfig();
