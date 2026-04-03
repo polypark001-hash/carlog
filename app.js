@@ -2133,11 +2133,13 @@ function setupSwipe() {
 async function init() {
   initDarkMode();
 
-  // Load from cloud first, then fallback to local
-  const cloudLoaded = await loadFromCloud();
-  if (cloudLoaded) {
-    CONFIG = loadConfig(); // Reload config from updated localStorage
-  }
+  // Load from cloud (non-blocking)
+  try {
+    if (supabase) {
+      const cloudLoaded = await loadFromCloud();
+      if (cloudLoaded) CONFIG = loadConfig();
+    }
+  } catch(e) { console.warn('클라우드 동기화 스킵'); }
 
   loadSampleData();
   renderCarGrid();
