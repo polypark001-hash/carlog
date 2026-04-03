@@ -3,17 +3,28 @@
    ========================================= */
 
 // ===== CONFIG =====
-const CONFIG = {
-  cars: [
-    { plate: '12가 3456', model: '현대 그랜저', drivers: ['김철수', '이영희'] },
-    { plate: '34나 7890', model: '기아 K5', drivers: ['박민수', '최지영'] },
-    { plate: '56다 1234', model: '현대 소나타', drivers: ['정대훈', '한미래'] },
-    { plate: '78라 5678', model: '기아 카니발', drivers: ['김철수', '박민수'] },
-    { plate: '90마 9012', model: '제네시스 G80', drivers: ['이영희', '최지영'] },
-    { plate: '11바 3456', model: 'BMW 520d', drivers: ['정대훈', '한미래'] }
-  ],
-  adminCode: '1234'
-};
+const DEFAULT_CARS = [
+  { plate: '12가 3456', model: '현대 그랜저', drivers: ['김철수', '이영희'] },
+  { plate: '34나 7890', model: '기아 K5', drivers: ['박민수', '최지영'] },
+  { plate: '56다 1234', model: '현대 소나타', drivers: ['정대훈', '한미래'] },
+  { plate: '78라 5678', model: '기아 카니발', drivers: ['김철수', '박민수'] },
+  { plate: '90마 9012', model: '제네시스 G80', drivers: ['이영희', '최지영'] },
+  { plate: '11바 3456', model: 'BMW 520d', drivers: ['정대훈', '한미래'] }
+];
+
+function loadConfig() {
+  try {
+    const saved = localStorage.getItem('carlog_config');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return { cars: JSON.parse(JSON.stringify(DEFAULT_CARS)), adminCode: '1234' };
+}
+
+function saveConfig() {
+  localStorage.setItem('carlog_config', JSON.stringify(CONFIG));
+}
+
+let CONFIG = loadConfig();
 
 // ===== STATE =====
 let state = { role: null, car: null, driver: null, currentPage: null };
@@ -1326,13 +1337,100 @@ function showDriverSettings() {
 }
 
 function showAdminSettings() {
-  document.getElementById('adminCarSettings').innerHTML = CONFIG.cars.map(c =>
-    `<div class="settings-car-item">
+  document.getElementById('adminCarSettings').innerHTML = CONFIG.cars.map((c, i) =>
+    `<div class="settings-car-item" onclick="openEditCar(${i})" style="cursor:pointer;">
       <div><div class="sci-plate">${c.plate}</div><div class="sci-model">${c.model}</div></div>
       <div class="sci-drivers">${c.drivers.join(', ')}</div>
+      <i class="fa-solid fa-chevron-right" style="color:var(--text-light);font-size:0.75rem;margin-left:auto;"></i>
     </div>`
-  ).join('');
+  ).join('') +
+  `<button class="btn btn-outline btn-full" style="margin-top:10px;" onclick="openAddCar()">
+    <i class="fa-solid fa-plus"></i> 차량 추가
+  </button>`;
   showPage('adminSettings');
+}
+
+function openAddCar() {
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-title"><i class="fa-solid fa-plus"></i> 차량 추가</div>
+    <div class="edit-form">
+      ${editField('car_plate', '차량번호', 'text', '')}
+      ${editField('car_model', '차종', 'text', '')}
+      ${editField('car_drivers', '기사 (쉼표로 구분)', 'text', '')}
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveCarConfig(-1)"><i class="fa-solid fa-check"></i> 추가</button>
+    </div>
+  `;
+  document.getElementById('recordModal').classList.add('show');
+}
+
+function openEditCar(idx) {
+  const c = CONFIG.cars[idx];
+  if (!c) return;
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-title"><i class="fa-solid fa-pen"></i> 차량 수정</div>
+    <div class="edit-form">
+      ${editField('car_plate', '차량번호', 'text', c.plate)}
+      ${editField('car_model', '차종', 'text', c.model)}
+      ${editField('car_drivers', '기사 (쉼표로 구분)', 'text', c.drivers.join(', '))}
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" style="color:var(--danger);border-color:var(--danger);" onclick="deleteCar(${idx})">
+        <i class="fa-regular fa-trash-can"></i> 삭제
+      </button>
+      <button class="btn btn-primary" onclick="saveCarConfig(${idx})"><i class="fa-solid fa-check"></i> 저장</button>
+    </div>
+  `;
+  document.getElementById('recordModal').classList.add('show');
+}
+
+function saveCarConfig(idx) {
+  const plate = document.getElementById('car_plate').value.trim();
+  const model = document.getElementById('car_model').value.trim();
+  const driversStr = document.getElementById('car_drivers').value.trim();
+
+  if (!plate) { showToast('차량번호를 입력하세요', 'error'); return; }
+  if (!model) { showToast('차종을 입력하세요', 'error'); return; }
+  if (!driversStr) { showToast('기사를 입력하세요', 'error'); return; }
+
+  const drivers = driversStr.split(',').map(s => s.trim()).filter(s => s);
+
+  if (idx >= 0) {
+    const oldPlate = CONFIG.cars[idx].plate;
+    // If plate changed, migrate data
+    if (oldPlate !== plate) {
+      const oldData = loadCarData(oldPlate);
+      saveCarData(plate, oldData);
+      localStorage.removeItem('v2_' + oldPlate);
+    }
+    CONFIG.cars[idx] = { plate, model, drivers };
+  } else {
+    // Check duplicate
+    if (CONFIG.cars.some(c => c.plate === plate)) {
+      showToast('이미 등록된 차량번호입니다', 'error'); return;
+    }
+    CONFIG.cars.push({ plate, model, drivers });
+  }
+
+  saveConfig();
+  closeModal();
+  showToast(idx >= 0 ? '차량 정보가 수정되었습니다' : '차량이 추가되었습니다', 'success');
+  renderCarGrid();
+  showAdminSettings();
+}
+
+function deleteCar(idx) {
+  const c = CONFIG.cars[idx];
+  if (!confirm(`${c.plate} (${c.model}) 차량을 삭제하시겠습니까?\n해당 차량의 모든 운행 데이터도 삭제됩니다.`)) return;
+  localStorage.removeItem('v2_' + c.plate);
+  CONFIG.cars.splice(idx, 1);
+  saveConfig();
+  closeModal();
+  showToast('차량이 삭제되었습니다', 'success');
+  renderCarGrid();
+  showAdminSettings();
 }
 
 function exportMyData() {
