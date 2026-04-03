@@ -4,7 +4,10 @@
       "Bash(gh auth:*)",
       "Bash(where git:*)",
       "Bash(git --version)",
-      "Bash(curl -s -H \"Accept: application/vnd.github+json\" \"https://api.github.com/repos/polypark001-hash/carlog/pages\")"
+      "Bash(curl -s -H \"Accept: application/vnd.github+json\" \"https://api.github.com/repos/polypark001-hash/carlog/pages\")",
+      "Bash(nslookup popaco.shop 8.8.8.8)",
+      "Bash(nslookup popaco.shop)",
+      "Bash(nslookup popaco.shop 168.126.63.1)"
     ]
   }
 }

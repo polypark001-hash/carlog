@@ -2,6 +2,53 @@
    POPACO - 법인차량 관리 시스템 JavaScript
    ========================================= */
 
+// ===== SUPABASE =====
+const SUPABASE_URL = 'https://elnzubbhnhtvsaaeujaq.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_4rsCNEjj79UIVxISs_xBfg_-RTpCdaj';
+const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+// Cloud sync queue - saves to Supabase in background
+function syncCarToCloud(plate, data) {
+  if (!supabase) return;
+  supabase.from('car_data').upsert({
+    plate: plate,
+    data: data,
+    updated_at: new Date().toISOString()
+  }).then(() => {}).catch(() => {});
+}
+
+function syncConfigToCloud() {
+  if (!supabase) return;
+  supabase.from('app_config').upsert({
+    id: 'main',
+    config: CONFIG,
+    updated_at: new Date().toISOString()
+  }).then(() => {}).catch(() => {});
+}
+
+async function loadFromCloud() {
+  if (!supabase) return false;
+  try {
+    // Load config
+    const { data: configRow } = await supabase.from('app_config').select('config').eq('id', 'main').single();
+    if (configRow && configRow.config && configRow.config.cars) {
+      CONFIG = configRow.config;
+      localStorage.setItem('carlog_config', JSON.stringify(CONFIG));
+    }
+
+    // Load all car data
+    const { data: carRows } = await supabase.from('car_data').select('plate, data');
+    if (carRows && carRows.length > 0) {
+      carRows.forEach(row => {
+        localStorage.setItem('v2_' + row.plate, JSON.stringify(row.data));
+      });
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 // ===== CONFIG =====
 const DEFAULT_CARS = [
   { plate: '12가 3456', model: '현대 그랜저', drivers: ['김철수', '이영희'] },
@@ -22,10 +69,10 @@ function loadConfig() {
 
 function saveConfig() {
   localStorage.setItem('carlog_config', JSON.stringify(CONFIG));
+  syncConfigToCloud();
 }
 
 let CONFIG = loadConfig();
-// Ensure config is saved on first load
 if (!localStorage.getItem('carlog_config')) saveConfig();
 
 // ===== STATE =====
@@ -42,6 +89,7 @@ function loadCarData(plate) {
 
 function saveCarData(plate, data) {
   localStorage.setItem('v2_' + plate, JSON.stringify(data));
+  syncCarToCloud(plate, data);
 }
 
 // ===== UTILITY =====
@@ -1483,6 +1531,7 @@ function clearAllCarsData() {
   if (!confirm('모든 차량의 데이터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) return;
   CONFIG.cars.forEach(c => {
     localStorage.removeItem('v2_' + c.plate);
+    syncCarToCloud(c.plate, { drives: [], fuels: [], maints: [], expenses: [] });
   });
   showToast('전체 데이터가 초기화되었습니다', 'success');
   showAdminDashboard();
@@ -1494,9 +1543,31 @@ function resetAllData() {
     localStorage.removeItem('v2_' + c.plate);
   });
   loadSampleData();
+  // Sync all sample data to cloud
+  CONFIG.cars.forEach(c => {
+    syncCarToCloud(c.plate, loadCarData(c.plate));
+  });
+  syncConfigToCloud();
   showToast('샘플 데이터가 재설정되었습니다', 'success');
   if (state.role === 'admin') showAdminDashboard();
   else showDriverDashboard();
+}
+
+async function syncAllToCloud() {
+  if (!supabase) { showToast('클라우드 연결 없음', 'error'); return; }
+  showToast('클라우드 동기화 중...', '');
+  try {
+    // Upload config
+    await supabase.from('app_config').upsert({ id: 'main', config: CONFIG, updated_at: new Date().toISOString() });
+    // Upload all car data
+    for (const car of CONFIG.cars) {
+      const data = loadCarData(car.plate);
+      await supabase.from('car_data').upsert({ plate: car.plate, data: data, updated_at: new Date().toISOString() });
+    }
+    showToast('클라우드 동기화 완료!', 'success');
+  } catch (e) {
+    showToast('동기화 실패', 'error');
+  }
 }
 
 // ===== SAMPLE DATA =====
@@ -2051,8 +2122,15 @@ function setupSwipe() {
 }
 
 // ===== INIT =====
-function init() {
+async function init() {
   initDarkMode();
+
+  // Load from cloud first, then fallback to local
+  const cloudLoaded = await loadFromCloud();
+  if (cloudLoaded) {
+    CONFIG = loadConfig(); // Reload config from updated localStorage
+  }
+
   loadSampleData();
   renderCarGrid();
   setupDriveDistPreview();
@@ -2060,6 +2138,11 @@ function init() {
   setupSwipe();
   document.getElementById('driverName').addEventListener('keydown', e => { if (e.key === 'Enter') driverLogin(); });
   document.getElementById('adminCode').addEventListener('keydown', e => { if (e.key === 'Enter') adminLogin(); });
+
+  // Show sync status
+  if (supabase) {
+    console.log('Supabase 연결됨 - 클라우드 동기화 활성화');
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);
