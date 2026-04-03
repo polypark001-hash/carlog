@@ -947,11 +947,88 @@ function printPDF() {
     });
   }
 
+  // ===== 월별 차량별 연비 비교 보고서 =====
+  const now = new Date();
+  const months6 = [];
+  for (let i = 5; i >= 0; i--) {
+    const dm = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months6.push(dm.toISOString().slice(0, 7));
+  }
+
+  let effHTML = '<h2 style="font-size:13px;margin:24px 0 8px;border-bottom:2px solid #333;padding-bottom:4px;">월별 차량별 연비 비교 (최근 6개월)</h2>';
+
+  // Table
+  const td2 = 'padding:4px 6px;border:1px solid #ddd;text-align:center;font-size:10px;';
+  const th2 = 'padding:5px 6px;border:1px solid #bbb;background:#f0f0f0;text-align:center;font-size:10px;font-weight:bold;';
+
+  effHTML += '<table style="width:100%;border-collapse:collapse;margin-bottom:16px;"><thead><tr>';
+  effHTML += `<th style="${th2}">차량</th>`;
+  months6.forEach(m => { effHTML += `<th style="${th2}">${m.slice(2).replace('-','.')}월</th>`; });
+  effHTML += `<th style="${th2};background:#e8f0fe;">평균</th></tr></thead><tbody>`;
+
+  const allEffData = [];
+  CONFIG.cars.forEach(car => {
+    const data = loadCarData(car.plate);
+    const monthEffs = months6.map(m => {
+      const mDrives = data.drives.filter(d => d.date && d.date.startsWith(m));
+      const mFuels = data.fuels.filter(f => f.date && f.date.startsWith(m));
+      return calcFuelEfficiency(mDrives, mFuels);
+    });
+    const validEffs = monthEffs.filter(e => e !== null).map(Number);
+    const avg = validEffs.length > 0 ? (validEffs.reduce((a,b)=>a+b,0) / validEffs.length).toFixed(1) : '-';
+
+    allEffData.push({ plate: car.plate, model: car.model, monthEffs, avg });
+
+    effHTML += '<tr>';
+    effHTML += `<td style="${td2};text-align:left;font-weight:bold;">${car.plate}<br><span style="font-size:8px;color:#888;">${car.model}</span></td>`;
+    monthEffs.forEach(e => {
+      const val = e || '-';
+      const color = e ? (Number(e) >= 8 ? '#16a34a' : Number(e) >= 5 ? '#333' : '#dc2626') : '#999';
+      effHTML += `<td style="${td2};color:${color};font-weight:${e?'bold':'normal'};">${val}</td>`;
+    });
+    effHTML += `<td style="${td2};background:#e8f0fe;font-weight:bold;">${avg}</td>`;
+    effHTML += '</tr>';
+  });
+
+  // Overall average row
+  effHTML += '<tr style="background:#f9f9f9;">';
+  effHTML += `<td style="${td2};text-align:left;font-weight:bold;">전체 평균</td>`;
+  months6.forEach((m, mi) => {
+    const vals = allEffData.map(d => d.monthEffs[mi]).filter(e => e !== null).map(Number);
+    const mAvg = vals.length > 0 ? (vals.reduce((a,b)=>a+b,0) / vals.length).toFixed(1) : '-';
+    effHTML += `<td style="${td2};font-weight:bold;">${mAvg}</td>`;
+  });
+  const allAvgs = allEffData.map(d => d.avg).filter(a => a !== '-').map(Number);
+  const totalAvg = allAvgs.length > 0 ? (allAvgs.reduce((a,b)=>a+b,0) / allAvgs.length).toFixed(1) : '-';
+  effHTML += `<td style="${td2};background:#e8f0fe;font-weight:bold;">${totalAvg}</td>`;
+  effHTML += '</tr></tbody></table>';
+
+  // Visual bar chart
+  effHTML += '<div style="margin-top:8px;">';
+  effHTML += '<h3 style="font-size:11px;margin-bottom:8px;color:#555;">차량별 평균 연비 비교</h3>';
+  const maxAvg = Math.max(...allEffData.map(d => d.avg === '-' ? 0 : Number(d.avg)), 1);
+  const barColors = ['#2563EB','#10B981','#F59E0B','#8B5CF6','#EC4899','#06B6D4','#EF4444','#84CC16'];
+  allEffData.forEach((d, i) => {
+    const pct = d.avg !== '-' ? Math.round((Number(d.avg) / maxAvg) * 100) : 0;
+    const color = barColors[i % barColors.length];
+    effHTML += `<div style="display:flex;align-items:center;margin-bottom:6px;font-size:10px;">
+      <div style="width:80px;flex-shrink:0;font-weight:bold;">${d.plate}</div>
+      <div style="flex:1;background:#eee;border-radius:3px;height:16px;overflow:hidden;">
+        <div style="width:${pct}%;background:${color};height:100%;border-radius:3px;"></div>
+      </div>
+      <div style="width:55px;text-align:right;font-weight:bold;margin-left:6px;">${d.avg !== '-' ? d.avg + ' km/L' : '-'}</div>
+    </div>`;
+  });
+  effHTML += '</div>';
+
+  // Unit: km/L legend
+  effHTML += '<div style="margin-top:10px;font-size:8px;color:#999;text-align:right;">단위: km/L | <span style="color:#16a34a;">■</span> 8 이상(양호) <span style="color:#333;">■</span> 5~8(보통) <span style="color:#dc2626;">■</span> 5 미만(주의)</div>';
+
   const w = window.open('','_blank');
   if (!w) { showToast('팝업을 허용해 주세요', 'error'); return; }
   w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>법인차량 운행기록부 - ${month}</title>
     <style>body{font-family:'맑은 고딕',sans-serif;padding:24px;font-size:11px;color:#333;}h1{text-align:center;font-size:17px;margin-bottom:3px;}h2{font-size:12px;margin:16px 0 8px;border-bottom:2px solid #333;padding-bottom:3px;}.meta{text-align:center;color:#666;margin-bottom:16px;font-size:10px;}@media print{@page{size:A4;margin:12mm;}}</style>
-  </head><body><h1>법인차량 운행기록부</h1><div class="meta">기간: ${month} | 출력일: ${today()}</div><h2>차량별 요약</h2>${summaryHTML}<h2>상세 기록</h2>${detailHTML}</body></html>`);
+  </head><body><h1>법인차량 운행기록부</h1><div class="meta">기간: ${month} | 출력일: ${today()}</div><h2>차량별 요약</h2>${summaryHTML}${effHTML}<h2>상세 기록</h2>${detailHTML}</body></html>`);
   w.document.close();
   setTimeout(() => w.print(), 500);
   showToast('PDF 출력 준비가 완료되었습니다', 'success');
