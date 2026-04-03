@@ -5,7 +5,14 @@
 // ===== SUPABASE =====
 const SUPABASE_URL = 'https://elnzubbhnhtvsaaeujaq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_4rsCNEjj79UIVxISs_xBfg_-RTpCdaj';
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+let supabase = null;
+try {
+  if (window.supabase && window.supabase.createClient) {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+} catch(e) {
+  console.warn('Supabase 초기화 실패:', e);
+}
 
 // Cloud sync queue - saves to Supabase in background
 function syncCarToCloud(plate, data) {
@@ -29,22 +36,23 @@ function syncConfigToCloud() {
 async function loadFromCloud() {
   if (!supabase) return false;
   try {
-    // Load config
-    const { data: configRow } = await supabase.from('app_config').select('config').eq('id', 'main').single();
-    if (configRow && configRow.config && configRow.config.cars) {
+    const { data: configRow, error: e1 } = await supabase.from('app_config').select('config').eq('id', 'main').single();
+    if (!e1 && configRow && configRow.config && configRow.config.cars) {
       CONFIG = configRow.config;
       localStorage.setItem('carlog_config', JSON.stringify(CONFIG));
     }
 
-    // Load all car data
-    const { data: carRows } = await supabase.from('car_data').select('plate, data');
-    if (carRows && carRows.length > 0) {
+    const { data: carRows, error: e2 } = await supabase.from('car_data').select('plate, data');
+    if (!e2 && carRows && carRows.length > 0) {
       carRows.forEach(row => {
-        localStorage.setItem('v2_' + row.plate, JSON.stringify(row.data));
+        if (row.plate && row.data) {
+          localStorage.setItem('v2_' + row.plate, JSON.stringify(row.data));
+        }
       });
     }
     return true;
   } catch (e) {
+    console.warn('클라우드 로드 실패:', e);
     return false;
   }
 }
