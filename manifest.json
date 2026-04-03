@@ -1,6 +1,6 @@
 {
-  "name": "CarLog - 법인차량 관리 시스템",
-  "short_name": "CarLog",
+  "name": "POPACO - 법인차량 관리 시스템",
+  "short_name": "POPACO",
   "description": "법인차량 운행/주유/정비/지출 기록 및 국세청 보고서 생성",
   "start_url": "./index.html",
   "display": "standalone",

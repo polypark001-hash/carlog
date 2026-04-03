@@ -19,5 +19,5 @@
     <circle cx="70" cy="52" r="8" fill="#1E40AF"/>
   </g>
   <!-- Text -->
-  <text x="256" y="380" text-anchor="middle" fill="white" font-family="Arial,sans-serif" font-size="64" font-weight="bold" letter-spacing="4">CarLog</text>
+  <text x="256" y="380" text-anchor="middle" fill="white" font-family="Arial,sans-serif" font-size="64" font-weight="bold" letter-spacing="4">POPACO</text>
 </svg>
