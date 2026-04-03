@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CarLog - 법인차량 관리 시스템</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2563EB">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CarLog">
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- ==================== LOGIN PAGE ==================== -->
+  <div id="loginPage" class="page active">
+    <div class="login-wrapper">
+      <div class="login-container">
+        <div class="login-logo">
+          <div class="logo-icon"><i class="fa-solid fa-car-side"></i></div>
+          <h2>CarLog</h2>
+          <p>법인차량 관리 시스템</p>
+        </div>
+
+        <div class="login-tabs">
+          <button class="active" onclick="switchLoginTab('driver')">기사 로그인</button>
+          <button onclick="switchLoginTab('admin')">관리자 로그인</button>
+        </div>
+
+        <!-- Driver Login -->
+        <div id="driverLoginForm" class="login-form active">
+          <p class="form-hint">담당 차량을 선택하세요</p>
+          <div id="carGrid" class="car-grid"></div>
+          <div class="form-group">
+            <label>기사 이름 <span class="required">*</span></label>
+            <div class="input-icon-wrap">
+              <i class="fa-regular fa-user"></i>
+              <input type="text" id="driverName" placeholder="이름을 입력하세요">
+            </div>
+          </div>
+          <button class="btn btn-primary btn-full btn-lg" onclick="driverLogin()">
+            로그인
+          </button>
+        </div>
+
+        <!-- Admin Login -->
+        <div id="adminLoginForm" class="login-form">
+          <div class="form-group">
+            <label>관리자 코드 <span class="required">*</span></label>
+            <div class="input-icon-wrap">
+              <i class="fa-solid fa-lock"></i>
+              <input type="password" id="adminCode" placeholder="관리자 코드를 입력하세요">
+            </div>
+          </div>
+          <button class="btn btn-primary btn-full btn-lg" onclick="adminLogin()">
+            관리자 로그인
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== DRIVER DASHBOARD ==================== -->
+  <div id="driverDashboard" class="page">
+    <header class="header">
+      <div class="header-left">
+        <div class="header-brand">CarLog</div>
+      </div>
+      <button class="header-icon-btn" onclick="logout()" title="로그아웃">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+      </button>
+    </header>
+
+    <main class="content">
+      <!-- Greeting -->
+      <section class="greeting" id="greeting"></section>
+
+      <!-- Vehicle Summary Card -->
+      <section class="vehicle-summary-card" id="vehicleCard"></section>
+
+      <!-- Key Stats Row -->
+      <section class="key-stats" id="driverStats"></section>
+
+      <!-- Quick Actions -->
+      <section>
+        <h3 class="section-title">빠른 관리</h3>
+        <div class="quick-actions-row">
+          <button class="quick-action-item active" onclick="showForm('drive')">
+            <div class="qa-icon qa-blue"><i class="fa-solid fa-route"></i></div>
+            <span>주행 기록</span>
+          </button>
+          <button class="quick-action-item" onclick="showForm('fuel')">
+            <div class="qa-icon qa-amber"><i class="fa-solid fa-gas-pump"></i></div>
+            <span>주유 등록</span>
+          </button>
+          <button class="quick-action-item" onclick="showForm('maint')">
+            <div class="qa-icon qa-green"><i class="fa-solid fa-wrench"></i></div>
+            <span>정비 기록</span>
+          </button>
+          <button class="quick-action-item" onclick="showForm('expense')">
+            <div class="qa-icon qa-purple"><i class="fa-solid fa-receipt"></i></div>
+            <span>비용 등록</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Consumables Alert -->
+      <section id="consumablesAlert"></section>
+
+      <!-- Chart -->
+      <section id="driverChart"></section>
+
+      <!-- Recent Records -->
+      <section>
+        <div class="section-header">
+          <h3 class="section-title">최근 기록</h3>
+          <a href="javascript:void(0)" class="view-all" onclick="switchDriverTab('history')">전체보기</a>
+        </div>
+        <div id="recentRecords" class="recent-list"></div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" id="driverNav">
+      <button class="nav-item active" onclick="switchDriverTab('dashboard')">
+        <i class="fa-solid fa-house"></i><span>홈</span>
+      </button>
+      <button class="nav-item" onclick="switchDriverTab('history')">
+        <i class="fa-solid fa-clock-rotate-left"></i><span>기록</span>
+      </button>
+      <button class="nav-item" onclick="switchDriverTab('consumables')">
+        <i class="fa-solid fa-oil-can"></i><span>소모품</span>
+      </button>
+      <button class="nav-item" onclick="switchSettingsTab()">
+        <i class="fa-solid fa-gear"></i><span>설정</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ==================== CONSUMABLES PAGE ==================== -->
+  <div id="consumablesPage" class="page">
+    <header class="header header-form">
+      <button class="header-icon-btn" onclick="switchDriverTab('dashboard')"><i class="fa-solid fa-chevron-left"></i></button>
+      <h1 class="header-title">소모품 관리</h1>
+      <button class="header-icon-btn" onclick="openAddConsumable()"><i class="fa-solid fa-plus"></i></button>
+    </header>
+
+    <main class="content">
+      <div id="consumablesList"></div>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="switchDriverTab('dashboard')">
+        <i class="fa-solid fa-house"></i><span>홈</span>
+      </button>
+      <button class="nav-item" onclick="switchDriverTab('history')">
+        <i class="fa-solid fa-clock-rotate-left"></i><span>기록</span>
+      </button>
+      <button class="nav-item active" onclick="switchDriverTab('consumables')">
+        <i class="fa-solid fa-oil-can"></i><span>소모품</span>
+      </button>
+      <button class="nav-item" onclick="switchSettingsTab()">
+        <i class="fa-solid fa-gear"></i><span>설정</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ==================== RECORD FORM PAGE ==================== -->
+  <div id="formPage" class="page">
+    <header class="header header-form">
+      <button class="header-icon-btn" onclick="goBack()"><i class="fa-solid fa-chevron-left"></i></button>
+      <h1 id="formTitle" class="header-title">주행 기록 입력</h1>
+      <div class="header-brand-sm">CarLog</div>
+    </header>
+
+    <main class="content">
+      <p id="formSubtitle" class="form-subtitle">새로운 기록을 입력해주세요</p>
+
+      <!-- Drive Form -->
+      <form id="driveForm" class="form-clean" style="display:none" onsubmit="return false;">
+        <div class="field-card">
+          <div class="field-label"><i class="fa-regular fa-calendar"></i> 날짜</div>
+          <input type="date" id="driveDate" class="field-input">
+        </div>
+        <div class="field-card">
+          <div class="field-label"><i class="fa-solid fa-route"></i> 코스명</div>
+          <input type="text" id="driveCourse" class="field-input" placeholder="예: 본사 → 부산경남">
+        </div>
+        <div class="field-card">
+          <div class="field-label"><i class="fa-solid fa-gauge-high"></i> 출발 계기판 수치</div>
+          <div class="field-unit-wrap">
+            <input type="number" id="driveOS" class="field-input" placeholder="0" inputmode="numeric">
+            <span class="field-unit">km</span>
+          </div>
+        </div>
+        <div class="field-card">
+          <div class="field-label"><i class="fa-solid fa-gauge-high"></i> 도착 계기판 수치</div>
+          <div class="field-unit-wrap">
+            <input type="number" id="driveOE" class="field-input" placeholder="0" inputmode="numeric">
+            <span class="field-unit">km</span>
+          </div>
+        </div>
+        <div id="driveDistPreview" class="dist-result" style="display:none">
+          <div class="dist-label">총 주행 거리</div>
+          <div class="dist-value"><span id="driveDistValue">0</span> <small>km</small></div>
+        </div>
+        <div class="field-card">
+          <div class="field-label"><i class="fa-regular fa-message"></i> 비고</div>
+          <textarea id="driveNote" class="field-input" placeholder="비고 사항 (선택)" rows="2"></textarea>
+        </div>
+        <button class="btn btn-primary btn-full btn-lg btn-save" onclick="saveDrive()">
+          주행 기록 저장 <i class="fa-regular fa-floppy-disk"></i>
+        </button>
+      </form>
+
+      <!-- Fuel Form -->
+      <form id="fuelForm" class="form-clean" style="display:none" onsubmit="return false;">
+        <div class="field-card">
+          <div class="field-label"><i class="fa-regular fa-calendar"></i> 날짜</div>
+          <input type="date" id="fuelDate" class="field-input">
+        </div>
+        <div class="field-card">
+          <div class="field-label"><i class="fa-solid fa-gas-pump"></i> 주유소명</div>
+          <input type="text" id="fuelStation" class="field-input" placeholder="주유소명 (선택)">
+        </div>
+        <div class="field-row">
+          <div class="field-card">
+            <div class="field-label">주유량</div>
+            <div class="field-unit-wrap">
+              <input type="number" id="fuelLiter" class="field-input" placeholder="0" step="0.1" inputmode="decimal">
+              <span class="field-unit">L</span>
+            </div>
+          </div>
+          <div class="field-card">
+            <div class="field-label">금액</div>
+            <div class="field-unit-wrap">
+              <input type="number" id="fuelAmount" class="field-input" placeholder="0" inputmode="numeric">
+              <span class="field-unit">원</span>
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-card">
+            <div class="field-label">연료 종류</div>
+            <select id="fuelType" class="field-input">
+              <option value="">선택</option>
+              <option value="휘발유">휘발유</option>
+              <option value="경유">경유</option>
+              <option value="LPG">LPG</option>
+              <option value="전기">전기</option>
+            </select>
+          </div>
+          <div class="field-card">
+            <div class="field-label">현재 계기</div>
+            <div class="field-unit-wrap">
+              <input type="number" id="fuelOdo" class="field-input" placeholder="0" inputmode="numeric">
+              <span class="field-unit">km</span>
+            </div>
+          </div>
+        </div>
+        <div class="field-card">
+          <div class="field-label"><i class="fa-regular fa-credit-card"></i> 결제 방법</div>
+          <select id="fuelPay" class="field-input">
+            <option value="법인카드">법인카드</option>
+            <option value="현금">현금</option>
+            <option value="개인카드">개인카드</option>
+          </select>
+        </div>
+        <div class="field-card">
+          <div class="field-label"><i class="fa-solid fa-camera"></i> 영수증 첨부</div>
+          <div class="receipt-upload" id="fuelReceiptArea">
+            <input type="file" id="fuelReceipt" accept="image/*" capture="environment" onchange="previewReceipt(this,'fuelReceiptPreview')" hidden>
+            <div id="fuelReceiptPreview" class="receipt-preview"></div>
+            <button type="button" class="receipt-btn" onclick="document.getElementById('fuelReceipt').click()">
+              <i class="fa-solid fa-camera"></i> 사진 촬영 / 파일 선택
+            </button>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full btn-lg btn-save" onclick="saveFuel()">
+          주유 기록 저장 <i class="fa-regular fa-floppy-disk"></i>
+        </button>
+      </form>
+
+      <!-- Maintenance Form -->
+      <form id="maintForm" class="form-clean" style="display:none" onsubmit="return false;">
+        <div class="field-card">
+          <div class="field-label"><i class="fa-regular fa-calendar"></i> 날짜</div>
+          <input type="date" id="maintDate" class="field-input">
+        </div>
+        <div class="field-card">
+          <div class="field-label"><i class="fa-solid fa-wrench"></i> 정비 유형</div>
+          <select id="maintType" class="field-input">
+            <option value="">선택하세요</option>
+            <option value="엔진오일 교환">엔진오일 교환</option>
+            <option value="타이어 교환">타이어 교환</option>
+            <option value="브레이크 정비">브레이크 정비</option>
+            <option value="에어필터 교환">에어필터 교환</option>
+            <option value="배터리 교환">배터리 교환</option>
+            <option value="정기 점검">정기 점검</option>
+            <option value="사고 수리">사고 수리</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-card">
+            <div class="field-label">정비 업체명</div>
+            <input type="text" id="maintShop" class="field-input" placeholder="업체명 (선택)">
+          </div>
+          <div class="field-card">
+            <div class="field-label">금액</div>
+            <div class="field-unit-wrap">
+              <input type="number" id="maintAmount" class="field-input" placeholder="0" inputmode="numeric">
+              <span class="field-unit">원</span>
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-card">
+            <div class="field-label">현재 계기</div>
+            <div class="field-unit-wrap">
+              <input type="number" id="maintOdo" class="field-input" placeholder="0" inputmode="numeric">
+              <span class="field-unit">km</span>
+            </div>
+          </div>
+          <div class="field-card">
+            <div class="field-label">결제 방법</div>
+            <select id="maintPay" class="field-input">
+              <option value="법인카드">법인카드</option>
+              <option value="현금">현금</option>
+              <option value="개인카드">개인카드</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-card">
+          <div class="field-label"><i class="fa-regular fa-message"></i> 비고</div>
+          <textarea id="maintNote" class="field-input" placeholder="비고 사항 (선택)" rows="2"></textarea>
+        </div>
+        <div class="field-card">
+          <div class="field-label"><i class="fa-solid fa-camera"></i> 영수증 첨부</div>
+          <div class="receipt-upload" id="maintReceiptArea">
+            <input type="file" id="maintReceipt" accept="image/*" capture="environment" onchange="previewReceipt(this,'maintReceiptPreview')" hidden>
+            <div id="maintReceiptPreview" class="receipt-preview"></div>
+            <button type="button" class="receipt-btn" onclick="document.getElementById('maintReceipt').click()">
+              <i class="fa-solid fa-camera"></i> 사진 촬영 / 파일 선택
+            </button>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full btn-lg btn-save" onclick="saveMaint()">
+          정비 기록 저장 <i class="fa-regular fa-floppy-disk"></i>
+        </button>
+      </form>
+
+      <!-- Expense Form -->
+      <form id="expenseForm" class="form-clean" style="display:none" onsubmit="return false;">
+        <div class="field-card">
+          <div class="field-label"><i class="fa-regular fa-calendar"></i> 날짜</div>
+          <input type="date" id="expenseDate" class="field-input">
+        </div>
+        <div class="field-card">
+          <div class="field-label"><i class="fa-solid fa-receipt"></i> 지출 유형</div>
+          <select id="expenseType" class="field-input">
+            <option value="">선택하세요</option>
+            <option value="주차비">주차비</option>
+            <option value="통행료">통행료</option>
+            <option value="세차비">세차비</option>
+            <option value="보험료">보험료</option>
+            <option value="차량 검사비">차량 검사비</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <div class="field-card">
+            <div class="field-label">금액</div>
+            <div class="field-unit-wrap">
+              <input type="number" id="expenseAmount" class="field-input" placeholder="0" inputmode="numeric">
+              <span class="field-unit">원</span>
+            </div>
+          </div>
+          <div class="field-card">
+            <div class="field-label">결제 방법</div>
+            <select id="expensePay" class="field-input">
+              <option value="법인카드">법인카드</option>
+              <option value="현금">현금</option>
+              <option value="개인카드">개인카드</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-card">
+          <div class="field-label"><i class="fa-regular fa-message"></i> 비고</div>
+          <textarea id="expenseNote" class="field-input" placeholder="비고 사항 (선택)" rows="2"></textarea>
+        </div>
+        <div class="field-card">
+          <div class="field-label"><i class="fa-solid fa-camera"></i> 영수증 첨부</div>
+          <div class="receipt-upload" id="expenseReceiptArea">
+            <input type="file" id="expenseReceipt" accept="image/*" capture="environment" onchange="previewReceipt(this,'expenseReceiptPreview')" hidden>
+            <div id="expenseReceiptPreview" class="receipt-preview"></div>
+            <button type="button" class="receipt-btn" onclick="document.getElementById('expenseReceipt').click()">
+              <i class="fa-solid fa-camera"></i> 사진 촬영 / 파일 선택
+            </button>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full btn-lg btn-save" onclick="saveExpense()">
+          지출 기록 저장 <i class="fa-regular fa-floppy-disk"></i>
+        </button>
+      </form>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="goBack()">
+        <i class="fa-solid fa-house"></i><span>홈</span>
+      </button>
+      <button class="nav-item active">
+        <i class="fa-solid fa-clock-rotate-left"></i><span>기록</span>
+      </button>
+      <button class="nav-item" onclick="switchDriverTab('consumables')">
+        <i class="fa-solid fa-oil-can"></i><span>소모품</span>
+      </button>
+      <button class="nav-item" onclick="goBack()">
+        <i class="fa-solid fa-gear"></i><span>설정</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ==================== DRIVER HISTORY PAGE ==================== -->
+  <div id="driverHistory" class="page">
+    <header class="header header-form">
+      <button class="header-icon-btn" onclick="switchDriverTab('dashboard')"><i class="fa-solid fa-chevron-left"></i></button>
+      <h1 class="header-title">기록 조회</h1>
+      <div class="header-brand-sm">CarLog</div>
+    </header>
+
+    <main class="content">
+      <div class="filter-bar">
+        <div class="filter-row">
+          <div class="form-group">
+            <label>조회 월</label>
+            <input type="month" id="driverHistMonth" class="field-input">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="loadDriverHistory()"><i class="fa-solid fa-magnifying-glass"></i> 조회</button>
+        </div>
+        <div class="search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="driverHistSearch" class="search-input" placeholder="기록 검색 (장소, 유형, 금액...)" oninput="loadDriverHistory()">
+        </div>
+      </div>
+      <div id="driverHistoryList"></div>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="switchDriverTab('dashboard')">
+        <i class="fa-solid fa-house"></i><span>홈</span>
+      </button>
+      <button class="nav-item active" onclick="switchDriverTab('history')">
+        <i class="fa-solid fa-clock-rotate-left"></i><span>기록</span>
+      </button>
+      <button class="nav-item">
+        <i class="fa-solid fa-wrench"></i><span>정비</span>
+      </button>
+      <button class="nav-item">
+        <i class="fa-solid fa-gear"></i><span>설정</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ==================== ADMIN DASHBOARD ==================== -->
+  <div id="adminDashboard" class="page">
+    <header class="header">
+      <div class="header-left">
+        <div class="header-brand">CarLog <span class="admin-badge">관리자</span></div>
+        <p class="header-sub">전체 차량 현황</p>
+      </div>
+      <button class="header-icon-btn" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+    </header>
+
+    <main class="content">
+      <section class="key-stats" id="adminTotalStats"></section>
+      <section id="adminChart"></section>
+      <section>
+        <h3 class="section-title">차량별 현황</h3>
+        <div id="adminCarList"></div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-item active" onclick="switchAdminTab('dashboard')">
+        <i class="fa-solid fa-chart-pie"></i><span>현황</span>
+      </button>
+      <button class="nav-item" onclick="switchAdminTab('records')">
+        <i class="fa-solid fa-list"></i><span>전체 기록</span>
+      </button>
+      <button class="nav-item" onclick="switchAdminTab('download')">
+        <i class="fa-solid fa-file-arrow-down"></i><span>보고서</span>
+      </button>
+      <button class="nav-item" onclick="switchSettingsTab()">
+        <i class="fa-solid fa-gear"></i><span>설정</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ==================== ADMIN RECORDS ==================== -->
+  <div id="adminRecords" class="page">
+    <header class="header header-form">
+      <button class="header-icon-btn" onclick="switchAdminTab('dashboard')"><i class="fa-solid fa-chevron-left"></i></button>
+      <h1 class="header-title">전체 기록 조회</h1>
+      <div class="header-brand-sm">CarLog</div>
+    </header>
+
+    <main class="content">
+      <div class="filter-bar">
+        <div class="filter-row">
+          <div class="form-group">
+            <label>조회 월</label>
+            <input type="month" id="adminRecMonth" class="field-input">
+          </div>
+          <div class="form-group">
+            <label>차량</label>
+            <select id="adminRecCar" class="field-input"><option value="all">전체 차량</option></select>
+          </div>
+        </div>
+        <div class="filter-row">
+          <div class="form-group">
+            <label>구분</label>
+            <select id="adminRecType" class="field-input">
+              <option value="all">전체</option>
+              <option value="drive">운행</option>
+              <option value="fuel">주유</option>
+              <option value="maint">정비</option>
+              <option value="expense">지출</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="loadAdminRecords()">
+            <i class="fa-solid fa-magnifying-glass"></i> 조회
+          </button>
+        </div>
+        <div class="search-wrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="adminRecSearch" class="search-input" placeholder="기록 검색..." oninput="loadAdminRecords()">
+        </div>
+      </div>
+      <div id="adminRecordTable"></div>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="switchAdminTab('dashboard')">
+        <i class="fa-solid fa-chart-pie"></i><span>현황</span>
+      </button>
+      <button class="nav-item active" onclick="switchAdminTab('records')">
+        <i class="fa-solid fa-list"></i><span>전체 기록</span>
+      </button>
+      <button class="nav-item" onclick="switchAdminTab('download')">
+        <i class="fa-solid fa-file-arrow-down"></i><span>보고서</span>
+      </button>
+      <button class="nav-item" onclick="switchSettingsTab()">
+        <i class="fa-solid fa-gear"></i><span>설정</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ==================== ADMIN DOWNLOAD ==================== -->
+  <div id="adminDownload" class="page">
+    <header class="header header-form">
+      <button class="header-icon-btn" onclick="switchAdminTab('dashboard')"><i class="fa-solid fa-chevron-left"></i></button>
+      <h1 class="header-title">보고서 / 다운로드</h1>
+      <div class="header-brand-sm">CarLog</div>
+    </header>
+
+    <main class="content">
+      <div class="filter-bar">
+        <div class="filter-row">
+          <div class="form-group">
+            <label>기간</label>
+            <input type="month" id="dlMonth" class="field-input" onchange="renderReportPreview()">
+          </div>
+          <div class="form-group">
+            <label>차량</label>
+            <select id="dlCar" class="field-input" onchange="renderReportPreview()"><option value="all">전체 차량</option></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Report Preview -->
+      <div id="reportPreview"></div>
+
+      <div class="download-buttons">
+        <button class="btn btn-download" onclick="downloadCSV()">
+          <div class="dl-icon dl-csv"><i class="fa-solid fa-file-csv"></i></div>
+          <div class="dl-text">
+            <strong>CSV 다운로드</strong>
+            <small>국세청 양식 (엑셀 호환)</small>
+          </div>
+          <i class="fa-solid fa-chevron-right dl-arrow"></i>
+        </button>
+        <button class="btn btn-download" onclick="printPDF()">
+          <div class="dl-icon dl-pdf"><i class="fa-solid fa-file-pdf"></i></div>
+          <div class="dl-text">
+            <strong>PDF 출력</strong>
+            <small>인쇄용 보고서</small>
+          </div>
+          <i class="fa-solid fa-chevron-right dl-arrow"></i>
+        </button>
+        <button class="btn btn-download" onclick="shareEmail()">
+          <div class="dl-icon dl-email"><i class="fa-solid fa-envelope"></i></div>
+          <div class="dl-text">
+            <strong>이메일 공유</strong>
+            <small>메일로 보고서 전송</small>
+          </div>
+          <i class="fa-solid fa-chevron-right dl-arrow"></i>
+        </button>
+      </div>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="switchAdminTab('dashboard')">
+        <i class="fa-solid fa-chart-pie"></i><span>현황</span>
+      </button>
+      <button class="nav-item" onclick="switchAdminTab('records')">
+        <i class="fa-solid fa-list"></i><span>전체 기록</span>
+      </button>
+      <button class="nav-item active" onclick="switchAdminTab('download')">
+        <i class="fa-solid fa-file-arrow-down"></i><span>보고서</span>
+      </button>
+      <button class="nav-item" onclick="switchSettingsTab()">
+        <i class="fa-solid fa-gear"></i><span>설정</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ==================== SETTINGS PAGE (Driver) ==================== -->
+  <div id="settingsPage" class="page">
+    <header class="header header-form">
+      <button class="header-icon-btn" onclick="switchDriverTab('dashboard')"><i class="fa-solid fa-chevron-left"></i></button>
+      <h1 class="header-title">설정</h1>
+      <div class="header-brand-sm">CarLog</div>
+    </header>
+
+    <main class="content">
+      <!-- Profile -->
+      <section class="settings-section">
+        <div class="settings-profile" id="settingsProfile"></div>
+      </section>
+
+      <!-- Menu -->
+      <section class="settings-section">
+        <h3 class="settings-group-title">화면 설정</h3>
+        <button class="settings-item" onclick="toggleDarkMode()">
+          <div class="si-icon si-gray"><i class="fa-solid fa-moon"></i></div>
+          <div class="si-text">다크 모드</div>
+          <div class="toggle-switch" id="darkToggle"><div class="toggle-knob"></div></div>
+        </button>
+      </section>
+
+      <section class="settings-section">
+        <h3 class="settings-group-title">데이터 관리</h3>
+        <button class="settings-item" onclick="exportMyData()">
+          <div class="si-icon si-blue"><i class="fa-solid fa-download"></i></div>
+          <div class="si-text">내 기록 CSV 내보내기</div>
+          <i class="fa-solid fa-chevron-right si-arrow"></i>
+        </button>
+        <button class="settings-item" onclick="clearMyData()">
+          <div class="si-icon si-red"><i class="fa-solid fa-trash-can"></i></div>
+          <div class="si-text">내 차량 데이터 초기화</div>
+          <i class="fa-solid fa-chevron-right si-arrow"></i>
+        </button>
+        <button class="settings-item" onclick="resetAllData()">
+          <div class="si-icon si-red"><i class="fa-solid fa-rotate-left"></i></div>
+          <div class="si-text">샘플 데이터 재설정</div>
+          <i class="fa-solid fa-chevron-right si-arrow"></i>
+        </button>
+      </section>
+
+      <section class="settings-section">
+        <h3 class="settings-group-title">앱 정보</h3>
+        <div class="settings-item static">
+          <div class="si-icon si-gray"><i class="fa-solid fa-circle-info"></i></div>
+          <div class="si-text">버전</div>
+          <div class="si-value">v1.0 (MVP)</div>
+        </div>
+        <div class="settings-item static">
+          <div class="si-icon si-gray"><i class="fa-solid fa-building"></i></div>
+          <div class="si-text">등록 차량 수</div>
+          <div class="si-value" id="settingsCarCount">6대</div>
+        </div>
+      </section>
+
+      <button class="btn btn-outline btn-full" onclick="logout()" style="margin-top:8px;">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i> 로그아웃
+      </button>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="switchDriverTab('dashboard')">
+        <i class="fa-solid fa-house"></i><span>홈</span>
+      </button>
+      <button class="nav-item" onclick="switchDriverTab('history')">
+        <i class="fa-solid fa-clock-rotate-left"></i><span>기록</span>
+      </button>
+      <button class="nav-item" onclick="switchDriverTab('consumables')">
+        <i class="fa-solid fa-oil-can"></i><span>소모품</span>
+      </button>
+      <button class="nav-item active" onclick="switchDriverTab('settings')">
+        <i class="fa-solid fa-gear"></i><span>설정</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ==================== ADMIN SETTINGS PAGE ==================== -->
+  <div id="adminSettings" class="page">
+    <header class="header header-form">
+      <button class="header-icon-btn" onclick="switchAdminTab('dashboard')"><i class="fa-solid fa-chevron-left"></i></button>
+      <h1 class="header-title">관리자 설정</h1>
+      <div class="header-brand-sm">CarLog</div>
+    </header>
+
+    <main class="content">
+      <section class="settings-section">
+        <h3 class="settings-group-title">화면 설정</h3>
+        <button class="settings-item" onclick="toggleDarkMode()">
+          <div class="si-icon si-gray"><i class="fa-solid fa-moon"></i></div>
+          <div class="si-text">다크 모드</div>
+          <div class="toggle-switch" id="darkToggleAdmin"><div class="toggle-knob"></div></div>
+        </button>
+      </section>
+
+      <section class="settings-section">
+        <h3 class="settings-group-title">데이터 관리</h3>
+        <button class="settings-item" onclick="clearAllCarsData()">
+          <div class="si-icon si-red"><i class="fa-solid fa-trash-can"></i></div>
+          <div class="si-text">전체 차량 데이터 초기화</div>
+          <i class="fa-solid fa-chevron-right si-arrow"></i>
+        </button>
+        <button class="settings-item" onclick="resetAllData()">
+          <div class="si-icon si-amber"><i class="fa-solid fa-rotate-left"></i></div>
+          <div class="si-text">샘플 데이터 재설정</div>
+          <i class="fa-solid fa-chevron-right si-arrow"></i>
+        </button>
+      </section>
+
+      <section class="settings-section">
+        <h3 class="settings-group-title">등록 차량 목록</h3>
+        <div id="adminCarSettings"></div>
+      </section>
+
+      <section class="settings-section">
+        <h3 class="settings-group-title">앱 정보</h3>
+        <div class="settings-item static">
+          <div class="si-icon si-gray"><i class="fa-solid fa-circle-info"></i></div>
+          <div class="si-text">버전</div>
+          <div class="si-value">v1.0 (MVP)</div>
+        </div>
+      </section>
+
+      <button class="btn btn-outline btn-full" onclick="logout()" style="margin-top:8px;">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i> 로그아웃
+      </button>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="switchAdminTab('dashboard')">
+        <i class="fa-solid fa-chart-pie"></i><span>현황</span>
+      </button>
+      <button class="nav-item" onclick="switchAdminTab('records')">
+        <i class="fa-solid fa-list"></i><span>전체 기록</span>
+      </button>
+      <button class="nav-item" onclick="switchAdminTab('download')">
+        <i class="fa-solid fa-file-arrow-down"></i><span>보고서</span>
+      </button>
+      <button class="nav-item active" onclick="switchAdminTab('settings')">
+        <i class="fa-solid fa-gear"></i><span>설정</span>
+      </button>
+    </nav>
+  </div>
+
+</div>
+
+<!-- Record Detail Modal -->
+<div id="recordModal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
