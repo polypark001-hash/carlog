@@ -59,12 +59,14 @@ async function loadFromCloud() {
 
 // ===== CONFIG =====
 const DEFAULT_CARS = [
-  { plate: '12가 3456', model: '현대 그랜저', drivers: ['김철수', '이영희'] },
-  { plate: '34나 7890', model: '기아 K5', drivers: ['박민수', '최지영'] },
-  { plate: '56다 1234', model: '현대 소나타', drivers: ['정대훈', '한미래'] },
-  { plate: '78라 5678', model: '기아 카니발', drivers: ['김철수', '박민수'] },
-  { plate: '90마 9012', model: '제네시스 G80', drivers: ['이영희', '최지영'] },
-  { plate: '11바 3456', model: 'BMW 520d', drivers: ['정대훈', '한미래'] }
+  { plate: '89모0746', model: '3.5톤 오토', drivers: ['조준호'] },
+  { plate: '808저1384', model: '3.5톤 스틱', drivers: ['신양수'] },
+  { plate: '825더8614', model: '3.5톤 오토', drivers: ['조기돈'] },
+  { plate: '819거2844', model: '3.5톤 오토', drivers: ['정헌우'] },
+  { plate: '83수2864', model: '1톤', drivers: ['권태완'] },
+  { plate: '81나2146', model: '1톤', drivers: ['김종하'] },
+  { plate: '85러6443', model: '스타렉스', drivers: ['김태우'] },
+  { plate: '821우8548', model: '1톤', drivers: ['정현종'] }
 ];
 
 function loadConfig() {
@@ -81,6 +83,11 @@ function saveConfig() {
 }
 
 let CONFIG = loadConfig();
+// Force update if old config has old car plates
+if (CONFIG.cars.length > 0 && CONFIG.cars[0].plate === '12가 3456') {
+  CONFIG = { cars: JSON.parse(JSON.stringify(DEFAULT_CARS)), adminCode: '1234' };
+  saveConfig();
+}
 if (!localStorage.getItem('carlog_config')) saveConfig();
 
 // ===== STATE =====
@@ -1580,83 +1587,7 @@ async function syncAllToCloud() {
 
 // ===== SAMPLE DATA =====
 function loadSampleData() {
-  const month = thisMonth();
-  const d = (day) => `${month}-${String(day).padStart(2, '0')}`;
-
-  // 12가 3456 - 김철수
-  const data1 = loadCarData('12가 3456');
-  if (data1.drives.length === 0) {
-    data1.drives = [
-      { date: d(1), course: '본사 → 강남 거래처', st: '09:00', et: '09:45', os: '12000', oe: '12028', purpose: '거래처 방문', note: '', driver: '김철수' },
-      { date: d(3), course: '본사 → 인천공항', st: '07:30', et: '08:50', os: '12028', oe: '12085', purpose: '업무 운행', note: '임원 공항 픽업', driver: '김철수' },
-      { date: d(5), course: '본사 → 수원 공장', st: '10:00', et: '11:00', os: '12085', oe: '12130', purpose: '업무 운행', note: '', driver: '김철수' },
-      { date: d(8), course: '본사 → 여의도 본점', st: '14:00', et: '14:40', os: '12130', oe: '12155', purpose: '거래처 방문', note: '', driver: '김철수' },
-      { date: d(10), course: '본사 → 판교 연구소', st: '09:30', et: '10:20', os: '12155', oe: '12198', purpose: '업무 운행', note: '', driver: '김철수' }
-    ];
-    data1.fuels = [
-      { date: d(2), liter: '45', amount: '75000', station: 'GS칼텍스 강남점', type: '휘발유', odo: '12028', pay: '법인카드', driver: '김철수' },
-      { date: d(9), liter: '40', amount: '66000', station: 'SK에너지 서초', type: '휘발유', odo: '12155', pay: '법인카드', driver: '김철수' }
-    ];
-    data1.maints = [
-      { date: d(7), type: '엔진오일 교환', shop: '현대 오토케어', amount: '85000', odo: '12130', pay: '법인카드', note: '합성유 교환', driver: '김철수' }
-    ];
-    data1.expenses = [
-      { date: d(1), type: '주차비', amount: '5000', pay: '법인카드', note: '코엑스 주차', driver: '김철수' },
-      { date: d(3), type: '통행료', amount: '12400', pay: '법인카드', note: '인천공항 고속도로', driver: '김철수' },
-      { date: d(6), type: '세차비', amount: '15000', pay: '법인카드', note: '', driver: '김철수' }
-    ];
-    data1.consumables = [
-      { name: '요소수 필터', cycle: '1년 주기', nextDate: '2026-12-04', nextKm: '', lastDate: '2025-12-04', lastKm: '', note: '' },
-      { name: '연료 필터', cycle: '3만km~6만km', nextDate: '', nextKm: '350000', lastDate: '2025-12-15', lastKm: '313599', note: '예정 333,599km' },
-      { name: '엔진오일', cycle: '1만km 또는 1년', nextDate: '2026-08-01', nextKm: '22000', lastDate: '2026-02-01', lastKm: '12000', note: '' },
-    ];
-    saveCarData('12가 3456', data1);
-  }
-
-  // 기존 데이터에 소모품이 없으면 추가
-  const existing1 = loadCarData('12가 3456');
-  if (!existing1.consumables || existing1.consumables.length === 0) {
-    existing1.consumables = [
-      { name: '요소수 필터', cycle: '1년 주기', nextDate: '2026-12-04', nextKm: '', lastDate: '2025-12-04', lastKm: '', note: '' },
-      { name: '연료 필터', cycle: '3만km~6만km', nextDate: '', nextKm: '350000', lastDate: '2025-12-15', lastKm: '313599', note: '예정 333,599km' },
-      { name: '엔진오일', cycle: '1만km 또는 1년', nextDate: '2026-08-01', nextKm: '22000', lastDate: '2026-02-01', lastKm: '12000', note: '' },
-    ];
-    saveCarData('12가 3456', existing1);
-  }
-
-  // 34나 7890 - 박민수
-  const data2 = loadCarData('34나 7890');
-  if (data2.drives.length === 0) {
-    data2.drives = [
-      { date: d(2), course: '본사 → 동탄 물류센터', st: '08:00', et: '09:10', os: '8500', oe: '8552', purpose: '배송', note: '', driver: '박민수' },
-      { date: d(4), course: '본사 → 성남 지사', st: '13:00', et: '13:35', os: '8552', oe: '8575', purpose: '업무 운행', note: '', driver: '박민수' },
-      { date: d(6), course: '본사 → 용인 창고', st: '10:00', et: '11:00', os: '8575', oe: '8620', purpose: '배송', note: '', driver: '박민수' }
-    ];
-    data2.fuels = [
-      { date: d(3), liter: '42', amount: '65000', station: 'SK에너지 분당', type: '경유', odo: '8552', pay: '법인카드', driver: '박민수' }
-    ];
-    data2.expenses = [
-      { date: d(2), type: '통행료', amount: '8200', pay: '법인카드', note: '경부고속', driver: '박민수' },
-      { date: d(4), type: '주차비', amount: '3000', pay: '현금', note: '', driver: '박민수' }
-    ];
-    saveCarData('34나 7890', data2);
-  }
-
-  // 56다 1234 - 정대훈
-  const data3 = loadCarData('56다 1234');
-  if (data3.drives.length === 0) {
-    data3.drives = [
-      { date: d(1), course: '본사 → 대전 지사', st: '07:00', et: '09:30', os: '25000', oe: '25160', purpose: '업무 운행', note: '', driver: '정대훈' },
-      { date: d(5), course: '본사 → 광명 KTX역', st: '16:00', et: '16:30', os: '25160', oe: '25182', purpose: '출퇴근', note: '', driver: '정대훈' }
-    ];
-    data3.fuels = [
-      { date: d(1), liter: '50', amount: '82500', station: 'S-OIL 서초', type: '휘발유', odo: '25000', pay: '법인카드', driver: '정대훈' }
-    ];
-    data3.maints = [
-      { date: d(3), type: '타이어 교환', shop: '타이어뱅크', amount: '320000', odo: '25160', pay: '법인카드', note: '4계절 타이어 교체', driver: '정대훈' }
-    ];
-    saveCarData('56다 1234', data3);
-  }
+  // No sample data - real vehicles only
 }
 
 // ===== FUEL EFFICIENCY CHART (Driver) =====
