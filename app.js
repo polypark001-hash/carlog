@@ -5,10 +5,10 @@
 // ===== SUPABASE =====
 const SUPABASE_URL = 'https://elnzubbhnhtvsaaeujaq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsbnp1YmJobmh0dnNhYWV1amFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNDE4MzgsImV4cCI6MjA5MDgxNzgzOH0.egoND8InKArZaIk-PNREWkDWrj8FssD-MLgy5AWVJHs';
-let supabase = null;
+var db = null;
 try {
   if (window.supabase && window.supabase.createClient) {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   }
 } catch(e) {
   console.warn('Supabase 초기화 실패:', e);
@@ -16,8 +16,8 @@ try {
 
 // Cloud sync queue - saves to Supabase in background
 function syncCarToCloud(plate, data) {
-  if (!supabase) return;
-  supabase.from('car_data').upsert({
+  if (!db) return;
+  db.from('car_data').upsert({
     plate: plate,
     data: data,
     updated_at: new Date().toISOString()
@@ -25,8 +25,8 @@ function syncCarToCloud(plate, data) {
 }
 
 function syncConfigToCloud() {
-  if (!supabase) return;
-  supabase.from('app_config').upsert({
+  if (!db) return;
+  db.from('app_config').upsert({
     id: 'main',
     config: CONFIG,
     updated_at: new Date().toISOString()
@@ -34,15 +34,15 @@ function syncConfigToCloud() {
 }
 
 async function loadFromCloud() {
-  if (!supabase) return false;
+  if (!db) return false;
   try {
-    const { data: configRow, error: e1 } = await supabase.from('app_config').select('config').eq('id', 'main').single();
+    const { data: configRow, error: e1 } = await db.from('app_config').select('config').eq('id', 'main').single();
     if (!e1 && configRow && configRow.config && configRow.config.cars) {
       CONFIG = configRow.config;
       localStorage.setItem('carlog_config', JSON.stringify(CONFIG));
     }
 
-    const { data: carRows, error: e2 } = await supabase.from('car_data').select('plate, data');
+    const { data: carRows, error: e2 } = await db.from('car_data').select('plate, data');
     if (!e2 && carRows && carRows.length > 0) {
       carRows.forEach(row => {
         if (row.plate && row.data) {
@@ -1562,15 +1562,15 @@ function resetAllData() {
 }
 
 async function syncAllToCloud() {
-  if (!supabase) { showToast('클라우드 연결 없음', 'error'); return; }
+  if (!db) { showToast('클라우드 연결 없음', 'error'); return; }
   showToast('클라우드 동기화 중...', '');
   try {
     // Upload config
-    await supabase.from('app_config').upsert({ id: 'main', config: CONFIG, updated_at: new Date().toISOString() });
+    await db.from('app_config').upsert({ id: 'main', config: CONFIG, updated_at: new Date().toISOString() });
     // Upload all car data
     for (const car of CONFIG.cars) {
       const data = loadCarData(car.plate);
-      await supabase.from('car_data').upsert({ plate: car.plate, data: data, updated_at: new Date().toISOString() });
+      await db.from('car_data').upsert({ plate: car.plate, data: data, updated_at: new Date().toISOString() });
     }
     showToast('클라우드 동기화 완료!', 'success');
   } catch (e) {
@@ -2135,7 +2135,7 @@ async function init() {
 
   // Load from cloud (non-blocking)
   try {
-    if (supabase) {
+    if (db) {
       const cloudLoaded = await loadFromCloud();
       if (cloudLoaded) CONFIG = loadConfig();
     }
@@ -2150,7 +2150,7 @@ async function init() {
   document.getElementById('adminCode').addEventListener('keydown', e => { if (e.key === 'Enter') adminLogin(); });
 
   // Show sync status
-  if (supabase) {
+  if (db) {
     console.log('Supabase 연결됨 - 클라우드 동기화 활성화');
   }
 }
