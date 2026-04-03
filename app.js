@@ -25,6 +25,8 @@ function saveConfig() {
 }
 
 let CONFIG = loadConfig();
+// Ensure config is saved on first load
+if (!localStorage.getItem('carlog_config')) saveConfig();
 
 // ===== STATE =====
 let state = { role: null, car: null, driver: null, currentPage: null };
@@ -1337,16 +1339,27 @@ function showDriverSettings() {
 }
 
 function showAdminSettings() {
-  document.getElementById('adminCarSettings').innerHTML = CONFIG.cars.map((c, i) =>
-    `<div class="settings-car-item" onclick="openEditCar(${i})" style="cursor:pointer;">
-      <div><div class="sci-plate">${c.plate}</div><div class="sci-model">${c.model}</div></div>
-      <div class="sci-drivers">${c.drivers.join(', ')}</div>
-      <i class="fa-solid fa-chevron-right" style="color:var(--text-light);font-size:0.75rem;margin-left:auto;"></i>
-    </div>`
+  const el = document.getElementById('adminCarSettings');
+  el.innerHTML = CONFIG.cars.map((c, i) =>
+    `<button class="settings-item" data-caridx="${i}" style="width:100%;">
+      <div style="flex:1;text-align:left;">
+        <div style="font-weight:700;font-size:0.95rem;">${c.plate}</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">${c.model} | ${c.drivers.join(', ')}</div>
+      </div>
+      <i class="fa-solid fa-chevron-right si-arrow"></i>
+    </button>`
   ).join('') +
   `<button class="btn btn-outline btn-full" style="margin-top:10px;" onclick="openAddCar()">
     <i class="fa-solid fa-plus"></i> 차량 추가
   </button>`;
+
+  // Event delegation for car items
+  el.querySelectorAll('[data-caridx]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      openEditCar(Number(this.dataset.caridx));
+    });
+  });
+
   showPage('adminSettings');
 }
 
