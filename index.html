@@ -454,10 +454,6 @@ if ('serviceWorker' in navigator) {
           </div>
           <button class="btn btn-primary btn-sm" onclick="loadDriverHistory()"><i class="fa-solid fa-magnifying-glass"></i> 조회</button>
         </div>
-        <div class="search-wrap">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" id="driverHistSearch" class="search-input" placeholder="기록 검색 (장소, 유형, 금액...)" oninput="loadDriverHistory()">
-        </div>
       </div>
       <div id="driverHistoryList"></div>
     </main>
@@ -547,10 +543,6 @@ if ('serviceWorker' in navigator) {
           <button class="btn btn-primary btn-sm" onclick="loadAdminRecords()">
             <i class="fa-solid fa-magnifying-glass"></i> 조회
           </button>
-        </div>
-        <div class="search-wrap">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" id="adminRecSearch" class="search-input" placeholder="기록 검색..." oninput="loadAdminRecords()">
         </div>
       </div>
       <div id="adminRecordTable"></div>

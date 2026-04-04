@@ -9,7 +9,9 @@
       "Bash(nslookup popaco.shop)",
       "Bash(nslookup popaco.shop 168.126.63.1)",
       "Bash(curl -s \"https://polypark001-hash.github.io/carlog/app.js\")",
-      "Bash(curl -sL \"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js\")"
+      "Bash(curl -sL \"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://polypark001-hash.github.io/carlog/app.js\")",
+      "Bash(curl -sL \"https://polypark001-hash.github.io/carlog/app.js\")"
     ]
   }
 }
