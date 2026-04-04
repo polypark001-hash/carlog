@@ -418,19 +418,9 @@ function loadDriverHistory() {
   });
   allRecords.sort((a, b) => (b.date||'').localeCompare(a.date||''));
 
-  // Search filter
-  const searchEl = document.getElementById('driverHistSearch');
-  const q = searchEl ? searchEl.value.trim().toLowerCase() : '';
-  const filtered = q ? allRecords.filter(r =>
-    r.detail.toLowerCase().includes(q) ||
-    r.amount.toLowerCase().includes(q) ||
-    r.date.includes(q) ||
-    typeLabels[r.type].includes(q)
-  ) : allRecords;
-
   const el = document.getElementById('driverHistoryList');
-  if (filtered.length === 0) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fa-regular fa-clipboard"></i></div><p>${q ? '검색 결과가 없습니다.' : '해당 기간에 기록이 없습니다.'}</p></div>`;
+  if (allRecords.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fa-regular fa-clipboard"></i></div><p>해당 기간에 기록이 없습니다.</p></div>`;
     return;
   }
 
@@ -455,7 +445,7 @@ function loadDriverHistory() {
 
   el.innerHTML = summaryHTML + `<div class="table-wrap"><table class="data-table">
     <thead><tr><th>날짜</th><th>구분</th><th>내용</th><th>금액/거리</th><th></th></tr></thead>
-    <tbody>${filtered.map(r => `<tr style="cursor:pointer" onclick="showRecordDetail('${r.type}',${r.idx})">
+    <tbody>${allRecords.map(r => `<tr style="cursor:pointer" onclick="showRecordDetail('${r.type}',${r.idx})">
       <td>${r.date}</td>
       <td><span class="badge-type badge-${r.type}">${typeLabels[r.type]}</span></td>
       <td>${r.detail}</td>
@@ -740,26 +730,15 @@ function loadAdminRecords() {
 
   allRecords.sort((a, b) => { const c = a.plate.localeCompare(b.plate); return c !== 0 ? c : a.date.localeCompare(b.date); });
 
-  // Search filter
-  const adminSearchEl = document.getElementById('adminRecSearch');
-  const aq = adminSearchEl ? adminSearchEl.value.trim().toLowerCase() : '';
-  const adminFiltered = aq ? allRecords.filter(r =>
-    r.detail.toLowerCase().includes(aq) ||
-    r.amount.toLowerCase().includes(aq) ||
-    r.plate.includes(aq) ||
-    (r.driver||'').includes(aq) ||
-    r.date.includes(aq)
-  ) : allRecords;
-
   const el = document.getElementById('adminRecordTable');
-  if (adminFiltered.length === 0) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fa-regular fa-clipboard"></i></div><p>${aq ? '검색 결과가 없습니다.' : '해당 조건에 맞는 기록이 없습니다.'}</p></div>`;
+  if (allRecords.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fa-regular fa-clipboard"></i></div><p>해당 조건에 맞는 기록이 없습니다.</p></div>`;
     return;
   }
 
   el.innerHTML = `<div class="table-wrap"><table class="data-table">
     <thead><tr><th>차량</th><th>날짜</th><th>구분</th><th>기사</th><th>내용</th><th>금액</th><th></th></tr></thead>
-    <tbody>${adminFiltered.map(r => `<tr style="cursor:pointer" onclick="showRecordDetail('${r.type}',${r.idx},'${r.plate}')">
+    <tbody>${allRecords.map(r => `<tr style="cursor:pointer" onclick="showRecordDetail('${r.type}',${r.idx},'${r.plate}')">
       <td>${r.plate}</td><td>${r.date}</td>
       <td><span class="badge-type badge-${r.type}">${typeLabels[r.type]}</span></td>
       <td>${r.driver||'-'}</td><td>${r.detail}</td>
