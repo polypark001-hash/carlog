@@ -2192,11 +2192,11 @@ async function init() {
   } catch(e) { console.warn('클라우드 동기화 스킵'); }
 
   // 삭제된 차량 강제 정리
-  if (CONFIG.deletedPlates && CONFIG.deletedPlates.length > 0) {
-    const before = CONFIG.cars.length;
-    CONFIG.cars = CONFIG.cars.filter(c => !CONFIG.deletedPlates.includes(c.plate));
-    if (CONFIG.cars.length !== before) saveConfig();
-  }
+  if (!CONFIG.deletedPlates) CONFIG.deletedPlates = [];
+  if (!CONFIG.deletedPlates.includes('5648')) CONFIG.deletedPlates.push('5648');
+  const beforeCount = CONFIG.cars.length;
+  CONFIG.cars = CONFIG.cars.filter(c => !CONFIG.deletedPlates.includes(c.plate));
+  if (CONFIG.cars.length !== beforeCount) saveConfig();
 
   loadSampleData();
   renderCarGrid();
