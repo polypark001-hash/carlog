@@ -341,21 +341,24 @@ function showDriverDashboard() {
     if (f.driver === state.driver) allRecords.push({
       _type: 'fuel', _idx: i, date: f.date,
       title: typeConfig.fuel.label, desc: f.station || f.type || '주유',
-      amount: `${fmt(f.amount)}원`, detail: f.liter ? f.liter + 'L' : ''
+      amount: `${fmt(f.amount)}원`, detail: f.liter ? f.liter + 'L' : '',
+      receipt: f.receipt || ''
     });
   });
   data.maints.forEach((m, i) => {
     if (m.driver === state.driver) allRecords.push({
       _type: 'maint', _idx: i, date: m.date,
       title: typeConfig.maint.label, desc: m.type,
-      amount: `${fmt(m.amount)}원`, detail: m.shop || ''
+      amount: `${fmt(m.amount)}원`, detail: m.shop || '',
+      receipt: m.receipt || ''
     });
   });
   data.expenses.forEach((e, i) => {
     if (e.driver === state.driver) allRecords.push({
       _type: 'expense', _idx: i, date: e.date,
       title: typeConfig.expense.label, desc: e.type,
-      amount: `${fmt(e.amount)}원`, detail: ''
+      amount: `${fmt(e.amount)}원`, detail: '',
+      receipt: e.receipt || ''
     });
   });
   allRecords.sort((a, b) => (b.date||'').localeCompare(a.date||''));
@@ -378,11 +381,12 @@ function showDriverDashboard() {
     recEl.innerHTML = allRecords.map(r => {
       const tc = typeConfig[r._type];
       const dateStr = r.date ? r.date.slice(5).replace('-', '/') : '';
+      const photoIcon = r.receipt ? `<i class="fa-solid fa-camera" style="color:var(--primary);font-size:12px;margin-left:6px;" title="영수증 있음"></i>` : '';
       return `<div class="recent-item swipe-item" onclick="showRecordDetail('${r._type}',${r._idx})" style="cursor:pointer"
         data-type="${r._type}" data-idx="${r._idx}">
         <div class="ri-icon" style="background:${tc.bg};color:${tc.color}"><i class="${tc.icon}"></i></div>
         <div class="ri-content">
-          <div class="ri-title">${dateStr} ${r.title}</div>
+          <div class="ri-title">${dateStr} ${r.title}${photoIcon}</div>
           <div class="ri-sub">${r.desc}</div>
         </div>
         <div class="ri-right">
@@ -757,13 +761,13 @@ function loadAdminRecords() {
         allRecords.push({ plate: car.plate, type: 'drive', idx: i, date: d.date, driver: d.driver, detail: (d.course || `${d.from||''} → ${d.to||''}`), amount: `${fmt(Math.max(0,(Number(d.oe)||0)-(Number(d.os)||0)))} km` }); });
     if (typeFilter === 'all' || typeFilter === 'fuel')
       data.fuels.forEach((f, i) => { if (f.date && f.date.startsWith(month))
-        allRecords.push({ plate: car.plate, type: 'fuel', idx: i, date: f.date, driver: f.driver, detail: `${f.station||''} ${f.type||''}`.trim(), amount: `${fmt(f.amount)}원` }); });
+        allRecords.push({ plate: car.plate, type: 'fuel', idx: i, date: f.date, driver: f.driver, detail: `${f.station||''} ${f.type||''}`.trim(), amount: `${fmt(f.amount)}원`, receipt: f.receipt||'' }); });
     if (typeFilter === 'all' || typeFilter === 'maint')
       data.maints.forEach((m, i) => { if (m.date && m.date.startsWith(month))
-        allRecords.push({ plate: car.plate, type: 'maint', idx: i, date: m.date, driver: m.driver, detail: m.type, amount: `${fmt(m.amount)}원` }); });
+        allRecords.push({ plate: car.plate, type: 'maint', idx: i, date: m.date, driver: m.driver, detail: m.type, amount: `${fmt(m.amount)}원`, receipt: m.receipt||'' }); });
     if (typeFilter === 'all' || typeFilter === 'expense')
       data.expenses.forEach((e, i) => { if (e.date && e.date.startsWith(month))
-        allRecords.push({ plate: car.plate, type: 'expense', idx: i, date: e.date, driver: e.driver, detail: e.type, amount: `${fmt(e.amount)}원` }); });
+        allRecords.push({ plate: car.plate, type: 'expense', idx: i, date: e.date, driver: e.driver, detail: e.type, amount: `${fmt(e.amount)}원`, receipt: e.receipt||'' }); });
   });
 
   allRecords.sort((a, b) => { const c = a.plate.localeCompare(b.plate); return c !== 0 ? c : a.date.localeCompare(b.date); });
@@ -775,12 +779,13 @@ function loadAdminRecords() {
   }
 
   el.innerHTML = `<div class="table-wrap"><table class="data-table">
-    <thead><tr><th>차량</th><th>날짜</th><th>구분</th><th>기사</th><th>내용</th><th>금액</th><th></th></tr></thead>
+    <thead><tr><th>차량</th><th>날짜</th><th>구분</th><th>기사</th><th>내용</th><th>금액</th><th></th><th></th></tr></thead>
     <tbody>${allRecords.map(r => `<tr style="cursor:pointer" onclick="showRecordDetail('${r.type}',${r.idx},'${r.plate}')">
       <td>${r.plate}</td><td>${r.date}</td>
       <td><span class="badge-type badge-${r.type}">${typeLabels[r.type]}</span></td>
       <td>${r.driver||'-'}</td><td>${r.detail}</td>
       <td style="font-weight:600;">${r.amount}</td>
+      <td>${r.receipt ? `<i class="fa-solid fa-camera" style="color:var(--primary);cursor:pointer;" onclick="event.stopPropagation();showReceiptImage(\`${r.receipt}\`)" title="영수증 보기"></i>` : ''}</td>
       <td><button class="btn-delete" onclick="event.stopPropagation();deleteRecord('${r.type}',${r.idx},'${r.plate}')" title="삭제"><i class="fa-regular fa-trash-can"></i></button></td>
     </tr>`).join('')}</tbody>
   </table></div>`;
@@ -1281,10 +1286,11 @@ function showRecordDetail(type, index, plate) {
   }
   if (record.note) rows += detailRow('비고', record.note);
 
-  const receiptBtn = record.receipt
-    ? `<button class="btn btn-outline btn-full" style="margin-bottom:10px;" onclick="showReceiptImage(\`${record.receipt}\`)">
-        <i class="fa-solid fa-receipt"></i> 영수증 보기
-      </button>`
+  const receiptSection = record.receipt
+    ? `<div style="margin:12px 0;text-align:center;">
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:6px;"><i class="fa-solid fa-camera"></i> 영수증</div>
+        <img src="${record.receipt}" style="max-width:100%;border-radius:8px;border:1px solid var(--border);cursor:pointer;" onclick="showReceiptImage(\`${record.receipt}\`)">
+      </div>`
     : '';
 
   document.getElementById('modalContent').innerHTML = `
@@ -1292,7 +1298,7 @@ function showRecordDetail(type, index, plate) {
       <i class="${typeIcons[type]}"></i> ${typeLabels[type]} 기록 상세
     </div>
     ${rows}
-    ${receiptBtn}
+    ${receiptSection}
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="openEditModal('${type}',${index},'${targetPlate}')">
         <i class="fa-solid fa-pen"></i> 수정
