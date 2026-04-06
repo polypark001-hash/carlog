@@ -285,7 +285,7 @@ if ('serviceWorker' in navigator) {
         <div class="field-card">
           <div class="field-label"><i class="fa-solid fa-camera"></i> 영수증 첨부</div>
           <div class="receipt-upload" id="fuelReceiptArea">
-            <input type="file" id="fuelReceipt" accept="image/*" capture="environment" onchange="previewReceipt(this,'fuelReceiptPreview')" hidden>
+            <input type="file" id="fuelReceipt" accept="image/*" onchange="previewReceipt(this,'fuelReceiptPreview')" hidden>
             <div id="fuelReceiptPreview" class="receipt-preview"></div>
             <button type="button" class="receipt-btn" onclick="document.getElementById('fuelReceipt').click()">
               <i class="fa-solid fa-camera"></i> 사진 촬영 / 파일 선택
@@ -354,7 +354,7 @@ if ('serviceWorker' in navigator) {
         <div class="field-card">
           <div class="field-label"><i class="fa-solid fa-camera"></i> 영수증 첨부</div>
           <div class="receipt-upload" id="maintReceiptArea">
-            <input type="file" id="maintReceipt" accept="image/*" capture="environment" onchange="previewReceipt(this,'maintReceiptPreview')" hidden>
+            <input type="file" id="maintReceipt" accept="image/*" onchange="previewReceipt(this,'maintReceiptPreview')" hidden>
             <div id="maintReceiptPreview" class="receipt-preview"></div>
             <button type="button" class="receipt-btn" onclick="document.getElementById('maintReceipt').click()">
               <i class="fa-solid fa-camera"></i> 사진 촬영 / 파일 선택
@@ -408,7 +408,7 @@ if ('serviceWorker' in navigator) {
         <div class="field-card">
           <div class="field-label"><i class="fa-solid fa-camera"></i> 영수증 첨부</div>
           <div class="receipt-upload" id="expenseReceiptArea">
-            <input type="file" id="expenseReceipt" accept="image/*" capture="environment" onchange="previewReceipt(this,'expenseReceiptPreview')" hidden>
+            <input type="file" id="expenseReceipt" accept="image/*" onchange="previewReceipt(this,'expenseReceiptPreview')" hidden>
             <div id="expenseReceiptPreview" class="receipt-preview"></div>
             <button type="button" class="receipt-btn" onclick="document.getElementById('expenseReceipt').click()">
               <i class="fa-solid fa-camera"></i> 사진 촬영 / 파일 선택
