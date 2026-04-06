@@ -540,7 +540,8 @@ function saveDrive() {
     driver: state.driver
   });
   saveCarData(state.car, data);
-  showToast('주행 기록이 저장되었습니다', 'success');
+  alert('저장완료');
+  syncAllToCloud();
   goBack();
 }
 
@@ -566,7 +567,8 @@ function saveFuel() {
     driver: state.driver
   });
   saveCarData(state.car, data);
-  showToast('주유 기록이 저장되었습니다', 'success');
+  alert('저장완료');
+  syncAllToCloud();
   goBack();
 }
 
@@ -590,7 +592,8 @@ function saveMaint() {
     driver: state.driver
   });
   saveCarData(state.car, data);
-  showToast('정비 기록이 저장되었습니다', 'success');
+  alert('저장완료');
+  syncAllToCloud();
   goBack();
 }
 
@@ -612,7 +615,8 @@ function saveExpense() {
     driver: state.driver
   });
   saveCarData(state.car, data);
-  showToast('지출 기록이 저장되었습니다', 'success');
+  alert('저장완료');
+  syncAllToCloud();
   goBack();
 }
 
