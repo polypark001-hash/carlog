@@ -43,8 +43,19 @@ async function loadFromCloud() {
     const { data: configRow, error: e1 } = await db.from('app_config').select('config').eq('id', 'main').single();
     if (e1) console.warn('클라우드 설정 로드:', e1.message);
     if (!e1 && configRow && configRow.config && configRow.config.cars) {
-      CONFIG = configRow.config;
+      const cloudConfig = configRow.config;
+      const localConfig = loadConfig();
+      // 차량 목록 병합: 클라우드 기준 + 로컬에만 있는 차량 추가
+      const mergedCars = [...cloudConfig.cars];
+      localConfig.cars.forEach(lc => {
+        if (!mergedCars.some(mc => mc.plate === lc.plate)) {
+          mergedCars.push(lc);
+        }
+      });
+      CONFIG = { ...cloudConfig, cars: mergedCars };
       localStorage.setItem('carlog_config', JSON.stringify(CONFIG));
+      // 병합 결과를 클라우드에도 반영
+      syncConfigToCloud();
     }
 
     const { data: carRows, error: e2 } = await db.from('car_data').select('plate, data');
@@ -1593,7 +1604,7 @@ function saveCarConfig(idx) {
 
   saveConfig();
   closeModal();
-  showToast(idx >= 0 ? '차량 정보가 수정되었습니다' : '차량이 추가되었습니다', 'success');
+  alert('저장완료');
   renderCarGrid();
   showAdminSettings();
 }
