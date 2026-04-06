@@ -225,7 +225,7 @@ function driverLogin() {
   if (!name) { showToast('이름을 입력하세요', 'error'); return; }
   const car = CONFIG.cars.find(c => c.plate === state.car);
   if (!car || !car.drivers.includes(name)) {
-    showToast('등록되지 않은 기사입니다', 'error'); return;
+    showToast('등록되지 않은 직원입니다', 'error'); return;
   }
   state.role = 'driver';
   state.driver = name;
@@ -779,7 +779,7 @@ function loadAdminRecords() {
   }
 
   el.innerHTML = `<div class="table-wrap"><table class="data-table">
-    <thead><tr><th>차량</th><th>날짜</th><th>구분</th><th>기사</th><th>내용</th><th>금액</th><th></th><th></th></tr></thead>
+    <thead><tr><th>차량</th><th>날짜</th><th>구분</th><th>직원</th><th>내용</th><th>금액</th><th></th><th></th></tr></thead>
     <tbody>${allRecords.map(r => `<tr style="cursor:pointer" onclick="showRecordDetail('${r.type}',${r.idx},'${r.plate}')">
       <td>${r.plate}</td><td>${r.date}</td>
       <td><span class="badge-type badge-${r.type}">${typeLabels[r.type]}</span></td>
@@ -802,16 +802,16 @@ function getAllRecordsForExport() {
     const data = loadCarData(car.plate);
     data.drives.filter(d => d.date && d.date.startsWith(month)).forEach(d => {
       const courseName = d.course || `${d.from||''} → ${d.to||''}`;
-      rows.push({ 차량번호:car.plate, 기사명:d.driver, 날짜:d.date, 구분:'운행', 코스명:courseName, '출발계기(km)':d.os, '도착계기(km)':d.oe, '운행거리(km)':Math.max(0,(Number(d.oe)||0)-(Number(d.os)||0)), 운행목적:d.purpose, '주유량(L)':'', '주유금액(원)':'', 주유소:'', 연료:'', 정비유형:'', 정비업체:'', '정비금액(원)':'', 지출유형:'', '지출금액(원)':'', 결제방법:'', 비고:d.note||'' });
+      rows.push({ 차량번호:car.plate, 직원명:d.driver, 날짜:d.date, 구분:'운행', 코스명:courseName, '출발계기(km)':d.os, '도착계기(km)':d.oe, '운행거리(km)':Math.max(0,(Number(d.oe)||0)-(Number(d.os)||0)), 운행목적:d.purpose, '주유량(L)':'', '주유금액(원)':'', 주유소:'', 연료:'', 정비유형:'', 정비업체:'', '정비금액(원)':'', 지출유형:'', '지출금액(원)':'', 결제방법:'', 비고:d.note||'' });
     });
     data.fuels.filter(f => f.date && f.date.startsWith(month)).forEach(f => {
-      rows.push({ 차량번호:car.plate, 기사명:f.driver, 날짜:f.date, 구분:'주유', 코스명:'', '출발계기(km)':'', '도착계기(km)':'', '운행거리(km)':'', 운행목적:'', '주유량(L)':f.liter, '주유금액(원)':f.amount, 주유소:f.station||'', 연료:f.type||'', 정비유형:'', 정비업체:'', '정비금액(원)':'', 지출유형:'', '지출금액(원)':'', 결제방법:f.pay||'', 비고:'' });
+      rows.push({ 차량번호:car.plate, 직원명:f.driver, 날짜:f.date, 구분:'주유', 코스명:'', '출발계기(km)':'', '도착계기(km)':'', '운행거리(km)':'', 운행목적:'', '주유량(L)':f.liter, '주유금액(원)':f.amount, 주유소:f.station||'', 연료:f.type||'', 정비유형:'', 정비업체:'', '정비금액(원)':'', 지출유형:'', '지출금액(원)':'', 결제방법:f.pay||'', 비고:'' });
     });
     data.maints.filter(m => m.date && m.date.startsWith(month)).forEach(m => {
-      rows.push({ 차량번호:car.plate, 기사명:m.driver, 날짜:m.date, 구분:'정비', 코스명:'', '출발계기(km)':'', '도착계기(km)':'', '운행거리(km)':'', 운행목적:'', '주유량(L)':'', '주유금액(원)':'', 주유소:'', 연료:'', 정비유형:m.type, 정비업체:m.shop||'', '정비금액(원)':m.amount, 지출유형:'', '지출금액(원)':'', 결제방법:m.pay||'', 비고:m.note||'' });
+      rows.push({ 차량번호:car.plate, 직원명:m.driver, 날짜:m.date, 구분:'정비', 코스명:'', '출발계기(km)':'', '도착계기(km)':'', '운행거리(km)':'', 운행목적:'', '주유량(L)':'', '주유금액(원)':'', 주유소:'', 연료:'', 정비유형:m.type, 정비업체:m.shop||'', '정비금액(원)':m.amount, 지출유형:'', '지출금액(원)':'', 결제방법:m.pay||'', 비고:m.note||'' });
     });
     data.expenses.filter(e => e.date && e.date.startsWith(month)).forEach(e => {
-      rows.push({ 차량번호:car.plate, 기사명:e.driver, 날짜:e.date, 구분:'지출', 코스명:'', '출발계기(km)':'', '도착계기(km)':'', '운행거리(km)':'', 운행목적:'', '주유량(L)':'', '주유금액(원)':'', 주유소:'', 연료:'', 정비유형:'', 정비업체:'', '정비금액(원)':'', 지출유형:e.type, '지출금액(원)':e.amount, 결제방법:e.pay||'', 비고:e.note||'' });
+      rows.push({ 차량번호:car.plate, 직원명:e.driver, 날짜:e.date, 구분:'지출', 코스명:'', '출발계기(km)':'', '도착계기(km)':'', '운행거리(km)':'', 운행목적:'', '주유량(L)':'', '주유금액(원)':'', 주유소:'', 연료:'', 정비유형:'', 정비업체:'', '정비금액(원)':'', 지출유형:e.type, '지출금액(원)':e.amount, 결제방법:e.pay||'', 비고:e.note||'' });
     });
   });
 
@@ -826,10 +826,10 @@ function downloadCSV() {
   const cars = carFilter === 'all' ? CONFIG.cars : CONFIG.cars.filter(c => c.plate === carFilter);
   const esc = v => { const s = String(v==null?'':v); return (s.includes(',')||s.includes('"')||s.includes('\n')) ? '"'+s.replace(/"/g,'""')+'"' : s; };
 
-  const driveH = ['날짜','기사','코스명','출발계기(km)','도착계기(km)','운행거리(km)','비고'];
-  const fuelH  = ['날짜','기사','주유소','연료','주유량(L)','금액(원)','결제'];
-  const maintH = ['날짜','기사','정비유형','정비업체','금액(원)','결제','비고'];
-  const expH   = ['날짜','기사','지출유형','금액(원)','결제','비고'];
+  const driveH = ['날짜','직원','코스명','출발계기(km)','도착계기(km)','운행거리(km)','비고'];
+  const fuelH  = ['날짜','직원','주유소','연료','주유량(L)','금액(원)','결제'];
+  const maintH = ['날짜','직원','정비유형','정비업체','금액(원)','결제','비고'];
+  const expH   = ['날짜','직원','지출유형','금액(원)','결제','비고'];
 
   let csv = '\uFEFF';
 
@@ -843,28 +843,28 @@ function downloadCSV() {
     if (dr.length > 0) {
       csv += `\n[운행 기록 - ${dr.length}건]\n`;
       csv += driveH.join(',') + '\n';
-      dr.forEach(r => { csv += [r.날짜, r.기사명, r.코스명||'', r['출발계기(km)']||'', r['도착계기(km)']||'', r['운행거리(km)']||'', r.비고||''].map(esc).join(',') + '\n'; });
+      dr.forEach(r => { csv += [r.날짜, r.직원명, r.코스명||'', r['출발계기(km)']||'', r['도착계기(km)']||'', r['운행거리(km)']||'', r.비고||''].map(esc).join(',') + '\n'; });
     }
 
     const fr = cr.filter(r => r.구분 === '주유');
     if (fr.length > 0) {
       csv += `\n[주유 기록 - ${fr.length}건]\n`;
       csv += fuelH.join(',') + '\n';
-      fr.forEach(r => { csv += [r.날짜, r.기사명, r.주유소||'', r.연료||'', r['주유량(L)']||'', r['주유금액(원)']||'', r.결제방법||''].map(esc).join(',') + '\n'; });
+      fr.forEach(r => { csv += [r.날짜, r.직원명, r.주유소||'', r.연료||'', r['주유량(L)']||'', r['주유금액(원)']||'', r.결제방법||''].map(esc).join(',') + '\n'; });
     }
 
     const mr = cr.filter(r => r.구분 === '정비');
     if (mr.length > 0) {
       csv += `\n[정비 기록 - ${mr.length}건]\n`;
       csv += maintH.join(',') + '\n';
-      mr.forEach(r => { csv += [r.날짜, r.기사명, r.정비유형||'', r.정비업체||'', r['정비금액(원)']||'', r.결제방법||'', r.비고||''].map(esc).join(',') + '\n'; });
+      mr.forEach(r => { csv += [r.날짜, r.직원명, r.정비유형||'', r.정비업체||'', r['정비금액(원)']||'', r.결제방법||'', r.비고||''].map(esc).join(',') + '\n'; });
     }
 
     const er = cr.filter(r => r.구분 === '지출');
     if (er.length > 0) {
       csv += `\n[지출 기록 - ${er.length}건]\n`;
       csv += expH.join(',') + '\n';
-      er.forEach(r => { csv += [r.날짜, r.기사명, r.지출유형||'', r['지출금액(원)']||'', r.결제방법||'', r.비고||''].map(esc).join(',') + '\n'; });
+      er.forEach(r => { csv += [r.날짜, r.직원명, r.지출유형||'', r['지출금액(원)']||'', r.결제방법||'', r.비고||''].map(esc).join(',') + '\n'; });
     }
 
     csv += '\n';
@@ -929,9 +929,9 @@ function printPDF() {
       if (dr.length > 0) {
         detailHTML += `<h3 style="font-size:10px;margin:10px 0 4px;color:#555;">운행 기록 (${dr.length}건)</h3>
           <table style="width:100%;border-collapse:collapse;font-size:9px;"><thead><tr>
-            <th style="${th}">날짜</th><th style="${th}">기사</th><th style="${th}">코스명</th><th style="${th}">출발계기(km)</th><th style="${th}">도착계기(km)</th><th style="${th}">운행거리(km)</th><th style="${th}">비고</th>
+            <th style="${th}">날짜</th><th style="${th}">직원</th><th style="${th}">코스명</th><th style="${th}">출발계기(km)</th><th style="${th}">도착계기(km)</th><th style="${th}">운행거리(km)</th><th style="${th}">비고</th>
           </tr></thead><tbody>` +
-          dr.map(r => `<tr><td style="${td}">${r.날짜}</td><td style="${td}">${r.기사명}</td><td style="${td}">${r.코스명||''}</td><td style="${td}">${r['출발계기(km)']?fmt(r['출발계기(km)']):''}</td><td style="${td}">${r['도착계기(km)']?fmt(r['도착계기(km)']):''}</td><td style="${td}">${r['운행거리(km)']?fmt(r['운행거리(km)']):''}</td><td style="${td}">${r.비고||''}</td></tr>`).join('') +
+          dr.map(r => `<tr><td style="${td}">${r.날짜}</td><td style="${td}">${r.직원명}</td><td style="${td}">${r.코스명||''}</td><td style="${td}">${r['출발계기(km)']?fmt(r['출발계기(km)']):''}</td><td style="${td}">${r['도착계기(km)']?fmt(r['도착계기(km)']):''}</td><td style="${td}">${r['운행거리(km)']?fmt(r['운행거리(km)']):''}</td><td style="${td}">${r.비고||''}</td></tr>`).join('') +
           '</tbody></table>';
       }
 
@@ -940,9 +940,9 @@ function printPDF() {
       if (fr.length > 0) {
         detailHTML += `<h3 style="font-size:10px;margin:10px 0 4px;color:#555;">주유 기록 (${fr.length}건)</h3>
           <table style="width:100%;border-collapse:collapse;font-size:9px;"><thead><tr>
-            <th style="${th}">날짜</th><th style="${th}">기사</th><th style="${th}">주유소</th><th style="${th}">연료</th><th style="${th}">주유량(L)</th><th style="${th}">금액(원)</th><th style="${th}">결제</th>
+            <th style="${th}">날짜</th><th style="${th}">직원</th><th style="${th}">주유소</th><th style="${th}">연료</th><th style="${th}">주유량(L)</th><th style="${th}">금액(원)</th><th style="${th}">결제</th>
           </tr></thead><tbody>` +
-          fr.map(r => `<tr><td style="${td}">${r.날짜}</td><td style="${td}">${r.기사명}</td><td style="${td}">${r.주유소||''}</td><td style="${td}">${r.연료||''}</td><td style="${td}">${r['주유량(L)']||''}</td><td style="${td}">${r['주유금액(원)']?fmt(r['주유금액(원)']):''}</td><td style="${td}">${r.결제방법||''}</td></tr>`).join('') +
+          fr.map(r => `<tr><td style="${td}">${r.날짜}</td><td style="${td}">${r.직원명}</td><td style="${td}">${r.주유소||''}</td><td style="${td}">${r.연료||''}</td><td style="${td}">${r['주유량(L)']||''}</td><td style="${td}">${r['주유금액(원)']?fmt(r['주유금액(원)']):''}</td><td style="${td}">${r.결제방법||''}</td></tr>`).join('') +
           '</tbody></table>';
       }
 
@@ -951,9 +951,9 @@ function printPDF() {
       if (mr.length > 0) {
         detailHTML += `<h3 style="font-size:10px;margin:10px 0 4px;color:#555;">정비 기록 (${mr.length}건)</h3>
           <table style="width:100%;border-collapse:collapse;font-size:9px;"><thead><tr>
-            <th style="${th}">날짜</th><th style="${th}">기사</th><th style="${th}">정비유형</th><th style="${th}">정비업체</th><th style="${th}">금액(원)</th><th style="${th}">결제</th><th style="${th}">비고</th>
+            <th style="${th}">날짜</th><th style="${th}">직원</th><th style="${th}">정비유형</th><th style="${th}">정비업체</th><th style="${th}">금액(원)</th><th style="${th}">결제</th><th style="${th}">비고</th>
           </tr></thead><tbody>` +
-          mr.map(r => `<tr><td style="${td}">${r.날짜}</td><td style="${td}">${r.기사명}</td><td style="${td}">${r.정비유형||''}</td><td style="${td}">${r.정비업체||''}</td><td style="${td}">${r['정비금액(원)']?fmt(r['정비금액(원)']):''}</td><td style="${td}">${r.결제방법||''}</td><td style="${td}">${r.비고||''}</td></tr>`).join('') +
+          mr.map(r => `<tr><td style="${td}">${r.날짜}</td><td style="${td}">${r.직원명}</td><td style="${td}">${r.정비유형||''}</td><td style="${td}">${r.정비업체||''}</td><td style="${td}">${r['정비금액(원)']?fmt(r['정비금액(원)']):''}</td><td style="${td}">${r.결제방법||''}</td><td style="${td}">${r.비고||''}</td></tr>`).join('') +
           '</tbody></table>';
       }
 
@@ -962,9 +962,9 @@ function printPDF() {
       if (er.length > 0) {
         detailHTML += `<h3 style="font-size:10px;margin:10px 0 4px;color:#555;">지출 기록 (${er.length}건)</h3>
           <table style="width:100%;border-collapse:collapse;font-size:9px;"><thead><tr>
-            <th style="${th}">날짜</th><th style="${th}">기사</th><th style="${th}">지출유형</th><th style="${th}">금액(원)</th><th style="${th}">결제</th><th style="${th}">비고</th>
+            <th style="${th}">날짜</th><th style="${th}">직원</th><th style="${th}">지출유형</th><th style="${th}">금액(원)</th><th style="${th}">결제</th><th style="${th}">비고</th>
           </tr></thead><tbody>` +
-          er.map(r => `<tr><td style="${td}">${r.날짜}</td><td style="${td}">${r.기사명}</td><td style="${td}">${r.지출유형||''}</td><td style="${td}">${r['지출금액(원)']?fmt(r['지출금액(원)']):''}</td><td style="${td}">${r.결제방법||''}</td><td style="${td}">${r.비고||''}</td></tr>`).join('') +
+          er.map(r => `<tr><td style="${td}">${r.날짜}</td><td style="${td}">${r.직원명}</td><td style="${td}">${r.지출유형||''}</td><td style="${td}">${r['지출금액(원)']?fmt(r['지출금액(원)']):''}</td><td style="${td}">${r.결제방법||''}</td><td style="${td}">${r.비고||''}</td></tr>`).join('') +
           '</tbody></table>';
       }
     });
@@ -1259,7 +1259,7 @@ function showRecordDetail(type, index, plate) {
 
   let rows = '';
   rows += detailRow('날짜', record.date);
-  rows += detailRow('기사', record.driver);
+  rows += detailRow('직원', record.driver);
 
   if (type === 'drive') {
     rows += detailRow('코스명', record.course || `${record.from||''} → ${record.to||''}`);
@@ -1533,7 +1533,7 @@ function openAddCar() {
     <div class="edit-form">
       ${editField('car_plate', '차량번호', 'text', '')}
       ${editField('car_model', '차종', 'text', '')}
-      ${editField('car_drivers', '기사 (쉼표로 구분)', 'text', '')}
+      ${editField('car_drivers', '직원 (쉼표로 구분)', 'text', '')}
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal()">취소</button>
@@ -1551,7 +1551,7 @@ function openEditCar(idx) {
     <div class="edit-form">
       ${editField('car_plate', '차량번호', 'text', c.plate)}
       ${editField('car_model', '차종', 'text', c.model)}
-      ${editField('car_drivers', '기사 (쉼표로 구분)', 'text', c.drivers.join(', '))}
+      ${editField('car_drivers', '직원 (쉼표로 구분)', 'text', c.drivers.join(', '))}
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" style="color:var(--danger);border-color:var(--danger);" onclick="deleteCar(${idx})">
@@ -1570,7 +1570,7 @@ function saveCarConfig(idx) {
 
   if (!plate) { showToast('차량번호를 입력하세요', 'error'); return; }
   if (!model) { showToast('차종을 입력하세요', 'error'); return; }
-  if (!driversStr) { showToast('기사를 입력하세요', 'error'); return; }
+  if (!driversStr) { showToast('직원을 입력하세요', 'error'); return; }
 
   const drivers = driversStr.split(',').map(s => s.trim()).filter(s => s);
 
