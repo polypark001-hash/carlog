@@ -21,7 +21,9 @@ function syncCarToCloud(plate, data) {
     plate: plate,
     data: data,
     updated_at: new Date().toISOString()
-  }).then(() => {}).catch(() => {});
+  }).then(({ error }) => {
+    if (error) console.error('클라우드 차량 저장 실패:', error.message);
+  }).catch(e => console.error('클라우드 차량 저장 예외:', e));
 }
 
 function syncConfigToCloud() {
@@ -30,23 +32,41 @@ function syncConfigToCloud() {
     id: 'main',
     config: CONFIG,
     updated_at: new Date().toISOString()
-  }).then(() => {}).catch(() => {});
+  }).then(({ error }) => {
+    if (error) console.error('클라우드 설정 저장 실패:', error.message);
+  }).catch(e => console.error('클라우드 설정 저장 예외:', e));
 }
 
 async function loadFromCloud() {
   if (!db) return false;
   try {
     const { data: configRow, error: e1 } = await db.from('app_config').select('config').eq('id', 'main').single();
+    if (e1) console.warn('클라우드 설정 로드:', e1.message);
     if (!e1 && configRow && configRow.config && configRow.config.cars) {
       CONFIG = configRow.config;
       localStorage.setItem('carlog_config', JSON.stringify(CONFIG));
     }
 
     const { data: carRows, error: e2 } = await db.from('car_data').select('plate, data');
+    if (e2) console.warn('클라우드 차량 로드:', e2.message);
     if (!e2 && carRows && carRows.length > 0) {
       carRows.forEach(row => {
         if (row.plate && row.data) {
-          localStorage.setItem('v2_' + row.plate, JSON.stringify(row.data));
+          // 클라우드 데이터와 로컬 데이터 병합 (클라우드가 비어있으면 로컬 유지)
+          const cloudData = row.data;
+          const localRaw = localStorage.getItem('v2_' + row.plate);
+          if (localRaw) {
+            const localData = JSON.parse(localRaw);
+            const merged = {
+              drives: mergeRecords(localData.drives || [], cloudData.drives || []),
+              fuels: mergeRecords(localData.fuels || [], cloudData.fuels || []),
+              maints: mergeRecords(localData.maints || [], cloudData.maints || []),
+              expenses: mergeRecords(localData.expenses || [], cloudData.expenses || [])
+            };
+            localStorage.setItem('v2_' + row.plate, JSON.stringify(merged));
+          } else {
+            localStorage.setItem('v2_' + row.plate, JSON.stringify(cloudData));
+          }
         }
       });
     }
@@ -55,6 +75,20 @@ async function loadFromCloud() {
     console.warn('클라우드 로드 실패:', e);
     return false;
   }
+}
+
+// 레코드 병합: 날짜+내용 기준 중복 제거
+function mergeRecords(local, cloud) {
+  const all = [...local];
+  const keys = new Set(local.map(r => JSON.stringify({ date: r.date, driver: r.driver, amount: r.amount, course: r.course, type: r.type })));
+  cloud.forEach(r => {
+    const key = JSON.stringify({ date: r.date, driver: r.driver, amount: r.amount, course: r.course, type: r.type });
+    if (!keys.has(key)) {
+      all.push(r);
+      keys.add(key);
+    }
+  });
+  return all;
 }
 
 // ===== CONFIG =====
