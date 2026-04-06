@@ -45,16 +45,21 @@ async function loadFromCloud() {
     if (!e1 && configRow && configRow.config && configRow.config.cars) {
       const cloudConfig = configRow.config;
       const localConfig = loadConfig();
-      // 차량 목록 병합: 클라우드 기준 + 로컬에만 있는 차량 추가
-      const mergedCars = [...cloudConfig.cars];
+      // 삭제 목록 병합
+      const deletedPlates = [...new Set([
+        ...(cloudConfig.deletedPlates || []),
+        ...(localConfig.deletedPlates || [])
+      ])];
+      // 차량 목록 병합 후 삭제된 차량 제외
+      const allCars = [...cloudConfig.cars];
       localConfig.cars.forEach(lc => {
-        if (!mergedCars.some(mc => mc.plate === lc.plate)) {
-          mergedCars.push(lc);
+        if (!allCars.some(mc => mc.plate === lc.plate)) {
+          allCars.push(lc);
         }
       });
-      CONFIG = { ...cloudConfig, cars: mergedCars };
+      const mergedCars = allCars.filter(c => !deletedPlates.includes(c.plate));
+      CONFIG = { ...cloudConfig, cars: mergedCars, deletedPlates };
       localStorage.setItem('carlog_config', JSON.stringify(CONFIG));
-      // 병합 결과를 클라우드에도 반영
       syncConfigToCloud();
     }
 
@@ -1613,10 +1618,12 @@ function deleteCar(idx) {
   const c = CONFIG.cars[idx];
   if (!confirm(`${c.plate} (${c.model}) 차량을 삭제하시겠습니까?\n해당 차량의 모든 운행 데이터도 삭제됩니다.`)) return;
   localStorage.removeItem('v2_' + c.plate);
+  if (!CONFIG.deletedPlates) CONFIG.deletedPlates = [];
+  if (!CONFIG.deletedPlates.includes(c.plate)) CONFIG.deletedPlates.push(c.plate);
   CONFIG.cars.splice(idx, 1);
   saveConfig();
   closeModal();
-  showToast('차량이 삭제되었습니다', 'success');
+  alert('삭제완료');
   renderCarGrid();
   showAdminSettings();
 }
