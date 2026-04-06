@@ -541,7 +541,7 @@ function goBack() {
 }
 
 // ===== SAVE: DRIVE =====
-function saveDrive() {
+async function saveDrive() {
   const date = document.getElementById('driveDate').value;
   const course = document.getElementById('driveCourse').value.trim();
   const os = document.getElementById('driveOS').value;
@@ -560,12 +560,12 @@ function saveDrive() {
     driver: state.driver
   });
   saveCarData(state.car, data);
+  await syncAllToCloud();
   alert('저장완료');
-  syncAllToCloud();
   goBack();
 }
 
-function saveFuel() {
+async function saveFuel() {
   const date = document.getElementById('fuelDate').value;
   const liter = document.getElementById('fuelLiter').value;
   const amount = document.getElementById('fuelAmount').value;
@@ -587,12 +587,12 @@ function saveFuel() {
     driver: state.driver
   });
   saveCarData(state.car, data);
+  await syncAllToCloud();
   alert('저장완료');
-  syncAllToCloud();
   goBack();
 }
 
-function saveMaint() {
+async function saveMaint() {
   const date = document.getElementById('maintDate').value;
   const type = document.getElementById('maintType').value;
   const amount = document.getElementById('maintAmount').value;
@@ -612,12 +612,12 @@ function saveMaint() {
     driver: state.driver
   });
   saveCarData(state.car, data);
+  await syncAllToCloud();
   alert('저장완료');
-  syncAllToCloud();
   goBack();
 }
 
-function saveExpense() {
+async function saveExpense() {
   const date = document.getElementById('expenseDate').value;
   const type = document.getElementById('expenseType').value;
   const amount = document.getElementById('expenseAmount').value;
@@ -635,8 +635,8 @@ function saveExpense() {
     driver: state.driver
   });
   saveCarData(state.car, data);
+  await syncAllToCloud();
   alert('저장완료');
-  syncAllToCloud();
   goBack();
 }
 
@@ -1688,19 +1688,17 @@ function resetAllData() {
 }
 
 async function syncAllToCloud() {
-  if (!db) { showToast('클라우드 연결 없음', 'error'); return; }
-  showToast('클라우드 동기화 중...', '');
+  if (!db) return;
   try {
-    // Upload config
-    await db.from('app_config').upsert({ id: 'main', config: CONFIG, updated_at: new Date().toISOString() });
-    // Upload all car data
+    const { error: e1 } = await db.from('app_config').upsert({ id: 'main', config: CONFIG, updated_at: new Date().toISOString() });
+    if (e1) console.error('설정 동기화 실패:', e1.message);
     for (const car of CONFIG.cars) {
       const data = loadCarData(car.plate);
-      await db.from('car_data').upsert({ plate: car.plate, data: data, updated_at: new Date().toISOString() });
+      const { error: e2 } = await db.from('car_data').upsert({ plate: car.plate, data: data, updated_at: new Date().toISOString() });
+      if (e2) console.error(`${car.plate} 동기화 실패:`, e2.message);
     }
-    showToast('클라우드 동기화 완료!', 'success');
   } catch (e) {
-    showToast('동기화 실패', 'error');
+    console.error('동기화 예외:', e);
   }
 }
 
