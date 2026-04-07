@@ -270,7 +270,11 @@ function logout() {
 }
 
 // ===== DRIVER DASHBOARD =====
-function showDriverDashboard() {
+async function showDriverDashboard() {
+  // 최신 클라우드 데이터 불러오기
+  if (db) {
+    try { await loadFromCloud(); CONFIG = loadConfig(); } catch(e) {}
+  }
   const car = CONFIG.cars.find(c => c.plate === state.car);
   const data = loadCarData(state.car);
   const month = thisMonth();
@@ -671,7 +675,11 @@ function setupDriveDistPreview() {
 }
 
 // ===== ADMIN =====
-function showAdminDashboard() {
+async function showAdminDashboard() {
+  // 최신 클라우드 데이터 불러오기
+  if (db) {
+    try { await loadFromCloud(); CONFIG = loadConfig(); } catch(e) {}
+  }
   const month = thisMonth();
   let totalDist = 0, totalFuel = 0, totalMaint = 0, totalExp = 0;
   populateCarSelectors();
