@@ -514,7 +514,9 @@ function loadDriverHistory() {
 }
 
 // ===== FORMS =====
-function showForm(type) {
+async function showForm(type) {
+  // 최신 데이터 불러오기
+  if (db) { try { await loadFromCloud(); } catch(e) {} }
   document.querySelectorAll('.form-clean').forEach(f => f.style.display = 'none');
   const titles = { drive: '주행 기록 입력', fuel: '주유 기록 입력', maint: '정비 기록 입력', expense: '지출 기록 입력' };
   const subtitles = { drive: '새로운 주행 기록을 입력해주세요', fuel: '주유 내역을 입력해주세요', maint: '정비 내역을 입력해주세요', expense: '지출 내역을 입력해주세요' };
