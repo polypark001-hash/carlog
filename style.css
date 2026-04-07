@@ -849,6 +849,67 @@ textarea.field-input { resize: vertical; min-height: 48px; font-weight: 400; fon
 .nav-item i { font-size: 1.15rem; }
 .nav-item.active { color: var(--primary-dark); }
 
+/* ===== Top Tab Nav (Admin) ===== */
+.top-nav {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  background: var(--bg);
+  display: flex;
+  justify-content: space-around;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  z-index: 99;
+}
+.top-nav .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+.top-nav .nav-item i { font-size: 1.1rem; }
+.top-nav .nav-item.active { color: var(--primary-dark); background: var(--primary-light); }
+
+/* ===== Page Arrow Nav (Admin) ===== */
+.page-arrows {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  max-width: 430px;
+  background: var(--bg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  padding-bottom: max(14px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  z-index: 100;
+}
+.page-arrows .arrow-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.page-arrows .arrow-btn:active { background: var(--primary-light); }
+.page-arrows .arrow-btn.disabled { color: var(--text-muted); pointer-events: none; }
+.page-arrows .page-indicator {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
 /* ===== Page Transition ===== */
 .page-enter {
   animation: pageIn 0.25s ease-out;
@@ -1569,6 +1630,9 @@ button.settings-item:active { background: var(--bg-secondary); }
 .dark .settings-car-item { background: #1F2937; border-color: #374151; }
 .dark .btn-download { background: #1F2937; border-color: #374151; }
 .dark .bottom-nav { background: #111827; border-color: #374151; }
+.dark .top-nav { background: #111827; border-color: #374151; }
+.dark .top-nav .nav-item.active { background: rgba(96,165,250,0.15); }
+.dark .page-arrows { background: #111827; border-color: #374151; }
 .dark .header { background: #111827; border-color: #374151; }
 .dark .toast { background: #374151; }
 .dark .fuel-unit-price { background: #172554; }
