@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="style.css?v=20260407b">
+<link rel="stylesheet" href="style.css?v=20260407c">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2563EB">
@@ -498,8 +498,7 @@ if ('serviceWorker' in navigator) {
 
     <div class="page-arrows">
       <span class="arrow-btn disabled"><i class="fa-solid fa-chevron-left"></i></span>
-      <span class="page-indicator">1 / 4</span>
-      <button class="arrow-btn" onclick="switchAdminTab('records')"><span>전체 기록</span> <i class="fa-solid fa-chevron-right"></i></button>
+      <button class="arrow-btn" onclick="switchAdminTab('records')"><i class="fa-solid fa-chevron-right"></i></button>
     </div>
 
     <nav class="bottom-nav">
@@ -558,9 +557,8 @@ if ('serviceWorker' in navigator) {
     </main>
 
     <div class="page-arrows">
-      <button class="arrow-btn" onclick="switchAdminTab('dashboard')"><i class="fa-solid fa-chevron-left"></i> <span>현황</span></button>
-      <span class="page-indicator">2 / 4</span>
-      <button class="arrow-btn" onclick="switchAdminTab('download')"><span>보고서</span> <i class="fa-solid fa-chevron-right"></i></button>
+      <button class="arrow-btn" onclick="switchAdminTab('dashboard')"><i class="fa-solid fa-chevron-left"></i></button>
+      <button class="arrow-btn" onclick="switchAdminTab('download')"><i class="fa-solid fa-chevron-right"></i></button>
     </div>
 
     <nav class="bottom-nav">
@@ -633,9 +631,8 @@ if ('serviceWorker' in navigator) {
     </main>
 
     <div class="page-arrows">
-      <button class="arrow-btn" onclick="switchAdminTab('records')"><i class="fa-solid fa-chevron-left"></i> <span>전체 기록</span></button>
-      <span class="page-indicator">3 / 4</span>
-      <button class="arrow-btn" onclick="switchSettingsTab()"><span>설정</span> <i class="fa-solid fa-chevron-right"></i></button>
+      <button class="arrow-btn" onclick="switchAdminTab('records')"><i class="fa-solid fa-chevron-left"></i></button>
+      <button class="arrow-btn" onclick="switchSettingsTab()"><i class="fa-solid fa-chevron-right"></i></button>
     </div>
 
     <nav class="bottom-nav">
@@ -765,8 +762,7 @@ if ('serviceWorker' in navigator) {
     </main>
 
     <div class="page-arrows">
-      <button class="arrow-btn" onclick="switchAdminTab('download')"><i class="fa-solid fa-chevron-left"></i> <span>보고서</span></button>
-      <span class="page-indicator">4 / 4</span>
+      <button class="arrow-btn" onclick="switchAdminTab('download')"><i class="fa-solid fa-chevron-left"></i></button>
       <span class="arrow-btn disabled"><i class="fa-solid fa-chevron-right"></i></span>
     </div>
 

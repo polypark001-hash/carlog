@@ -879,34 +879,34 @@ textarea.field-input { resize: vertical; min-height: 48px; font-weight: 400; fon
 /* ===== Page Arrow Nav (Admin) ===== */
 .page-arrows {
   position: fixed;
-  bottom: 65px;
+  bottom: 0;
   width: 100%;
   max-width: 430px;
   background: var(--bg);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 16px;
-  border-top: 1px solid var(--border);
-  z-index: 99;
+  padding: 8px 24px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  z-index: 100;
 }
 .page-arrows .arrow-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
   color: var(--primary);
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 8px;
+  font-size: 1.8rem;
+  font-weight: 900;
+  padding: 8px;
+  border-radius: 12px;
   transition: background 0.15s;
 }
 .page-arrows .arrow-btn:active { background: var(--primary-light); }
-.page-arrows .arrow-btn.disabled { color: var(--text-muted); pointer-events: none; }
-.page-arrows .page-indicator {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  font-weight: 500;
+.page-arrows .arrow-btn.disabled { color: var(--border); pointer-events: none; }
+/* Admin pages: bottom-nav above arrows */
+.page-arrows ~ .bottom-nav {
+  bottom: 50px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
 }
 
 /* ===== Page Transition ===== */
