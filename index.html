@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="style.css?v=20260407">
+<link rel="stylesheet" href="style.css?v=20260407b">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2563EB">
@@ -487,22 +487,7 @@ if ('serviceWorker' in navigator) {
       <button class="header-icon-btn" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
     </header>
 
-    <nav class="top-nav">
-      <button class="nav-item active" onclick="switchAdminTab('dashboard')">
-        <i class="fa-solid fa-chart-pie"></i><span>현황</span>
-      </button>
-      <button class="nav-item" onclick="switchAdminTab('records')">
-        <i class="fa-solid fa-list"></i><span>전체 기록</span>
-      </button>
-      <button class="nav-item" onclick="switchAdminTab('download')">
-        <i class="fa-solid fa-file-arrow-down"></i><span>보고서</span>
-      </button>
-      <button class="nav-item" onclick="switchSettingsTab()">
-        <i class="fa-solid fa-gear"></i><span>설정</span>
-      </button>
-    </nav>
-
-    <main class="content" style="padding-bottom:60px;">
+    <main class="content">
       <section class="key-stats" id="adminTotalStats"></section>
       <section id="adminChart"></section>
       <section>
@@ -516,6 +501,21 @@ if ('serviceWorker' in navigator) {
       <span class="page-indicator">1 / 4</span>
       <button class="arrow-btn" onclick="switchAdminTab('records')"><span>전체 기록</span> <i class="fa-solid fa-chevron-right"></i></button>
     </div>
+
+    <nav class="bottom-nav">
+      <button class="nav-item active" onclick="switchAdminTab('dashboard')">
+        <i class="fa-solid fa-chart-pie"></i><span>현황</span>
+      </button>
+      <button class="nav-item" onclick="switchAdminTab('records')">
+        <i class="fa-solid fa-list"></i><span>전체 기록</span>
+      </button>
+      <button class="nav-item" onclick="switchAdminTab('download')">
+        <i class="fa-solid fa-file-arrow-down"></i><span>보고서</span>
+      </button>
+      <button class="nav-item" onclick="switchSettingsTab()">
+        <i class="fa-solid fa-gear"></i><span>설정</span>
+      </button>
+    </nav>
   </div>
 
   <!-- ==================== ADMIN RECORDS ==================== -->
@@ -526,22 +526,7 @@ if ('serviceWorker' in navigator) {
       <div class="header-brand-sm">POPACO</div>
     </header>
 
-    <nav class="top-nav">
-      <button class="nav-item" onclick="switchAdminTab('dashboard')">
-        <i class="fa-solid fa-chart-pie"></i><span>현황</span>
-      </button>
-      <button class="nav-item active" onclick="switchAdminTab('records')">
-        <i class="fa-solid fa-list"></i><span>전체 기록</span>
-      </button>
-      <button class="nav-item" onclick="switchAdminTab('download')">
-        <i class="fa-solid fa-file-arrow-down"></i><span>보고서</span>
-      </button>
-      <button class="nav-item" onclick="switchSettingsTab()">
-        <i class="fa-solid fa-gear"></i><span>설정</span>
-      </button>
-    </nav>
-
-    <main class="content" style="padding-bottom:60px;">
+    <main class="content">
       <div class="filter-bar">
         <div class="filter-row">
           <div class="form-group">
@@ -577,6 +562,21 @@ if ('serviceWorker' in navigator) {
       <span class="page-indicator">2 / 4</span>
       <button class="arrow-btn" onclick="switchAdminTab('download')"><span>보고서</span> <i class="fa-solid fa-chevron-right"></i></button>
     </div>
+
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="switchAdminTab('dashboard')">
+        <i class="fa-solid fa-chart-pie"></i><span>현황</span>
+      </button>
+      <button class="nav-item active" onclick="switchAdminTab('records')">
+        <i class="fa-solid fa-list"></i><span>전체 기록</span>
+      </button>
+      <button class="nav-item" onclick="switchAdminTab('download')">
+        <i class="fa-solid fa-file-arrow-down"></i><span>보고서</span>
+      </button>
+      <button class="nav-item" onclick="switchSettingsTab()">
+        <i class="fa-solid fa-gear"></i><span>설정</span>
+      </button>
+    </nav>
   </div>
 
   <!-- ==================== ADMIN DOWNLOAD ==================== -->
@@ -587,22 +587,7 @@ if ('serviceWorker' in navigator) {
       <div class="header-brand-sm">POPACO</div>
     </header>
 
-    <nav class="top-nav">
-      <button class="nav-item" onclick="switchAdminTab('dashboard')">
-        <i class="fa-solid fa-chart-pie"></i><span>현황</span>
-      </button>
-      <button class="nav-item" onclick="switchAdminTab('records')">
-        <i class="fa-solid fa-list"></i><span>전체 기록</span>
-      </button>
-      <button class="nav-item active" onclick="switchAdminTab('download')">
-        <i class="fa-solid fa-file-arrow-down"></i><span>보고서</span>
-      </button>
-      <button class="nav-item" onclick="switchSettingsTab()">
-        <i class="fa-solid fa-gear"></i><span>설정</span>
-      </button>
-    </nav>
-
-    <main class="content" style="padding-bottom:60px;">
+    <main class="content">
       <div class="filter-bar">
         <div class="filter-row">
           <div class="form-group">
@@ -652,6 +637,21 @@ if ('serviceWorker' in navigator) {
       <span class="page-indicator">3 / 4</span>
       <button class="arrow-btn" onclick="switchSettingsTab()"><span>설정</span> <i class="fa-solid fa-chevron-right"></i></button>
     </div>
+
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="switchAdminTab('dashboard')">
+        <i class="fa-solid fa-chart-pie"></i><span>현황</span>
+      </button>
+      <button class="nav-item" onclick="switchAdminTab('records')">
+        <i class="fa-solid fa-list"></i><span>전체 기록</span>
+      </button>
+      <button class="nav-item active" onclick="switchAdminTab('download')">
+        <i class="fa-solid fa-file-arrow-down"></i><span>보고서</span>
+      </button>
+      <button class="nav-item" onclick="switchSettingsTab()">
+        <i class="fa-solid fa-gear"></i><span>설정</span>
+      </button>
+    </nav>
   </div>
 
   <!-- ==================== SETTINGS PAGE (Driver) ==================== -->
@@ -735,22 +735,7 @@ if ('serviceWorker' in navigator) {
       <div class="header-brand-sm">POPACO</div>
     </header>
 
-    <nav class="top-nav">
-      <button class="nav-item" onclick="switchAdminTab('dashboard')">
-        <i class="fa-solid fa-chart-pie"></i><span>현황</span>
-      </button>
-      <button class="nav-item" onclick="switchAdminTab('records')">
-        <i class="fa-solid fa-list"></i><span>전체 기록</span>
-      </button>
-      <button class="nav-item" onclick="switchAdminTab('download')">
-        <i class="fa-solid fa-file-arrow-down"></i><span>보고서</span>
-      </button>
-      <button class="nav-item active" onclick="switchSettingsTab()">
-        <i class="fa-solid fa-gear"></i><span>설정</span>
-      </button>
-    </nav>
-
-    <main class="content" style="padding-bottom:60px;">
+    <main class="content">
       <section class="settings-section">
         <h3 class="settings-group-title">화면 설정</h3>
         <button class="settings-item" onclick="toggleDarkMode()">
@@ -784,6 +769,21 @@ if ('serviceWorker' in navigator) {
       <span class="page-indicator">4 / 4</span>
       <span class="arrow-btn disabled"><i class="fa-solid fa-chevron-right"></i></span>
     </div>
+
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="switchAdminTab('dashboard')">
+        <i class="fa-solid fa-chart-pie"></i><span>현황</span>
+      </button>
+      <button class="nav-item" onclick="switchAdminTab('records')">
+        <i class="fa-solid fa-list"></i><span>전체 기록</span>
+      </button>
+      <button class="nav-item" onclick="switchAdminTab('download')">
+        <i class="fa-solid fa-file-arrow-down"></i><span>보고서</span>
+      </button>
+      <button class="nav-item active" onclick="switchSettingsTab()">
+        <i class="fa-solid fa-gear"></i><span>설정</span>
+      </button>
+    </nav>
   </div>
 
 </div>
@@ -799,6 +799,6 @@ if ('serviceWorker' in navigator) {
 <!-- Toast -->
 <div id="toast" class="toast"></div>
 
-<script src="app.js?v=20260407"></script>
+<script src="app.js?v=20260407b"></script>
 </body>
 </html>

@@ -879,17 +879,16 @@ textarea.field-input { resize: vertical; min-height: 48px; font-weight: 400; fon
 /* ===== Page Arrow Nav (Admin) ===== */
 .page-arrows {
   position: fixed;
-  bottom: 0;
+  bottom: 65px;
   width: 100%;
   max-width: 430px;
   background: var(--bg);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
-  padding-bottom: max(14px, env(safe-area-inset-bottom));
+  padding: 8px 16px;
   border-top: 1px solid var(--border);
-  z-index: 100;
+  z-index: 99;
 }
 .page-arrows .arrow-btn {
   display: flex;
