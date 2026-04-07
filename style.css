@@ -893,15 +893,19 @@ textarea.field-input { resize: vertical; min-height: 48px; font-weight: 400; fon
 .page-arrows .arrow-btn {
   display: flex;
   align-items: center;
-  color: var(--primary);
-  font-size: 1.8rem;
+  justify-content: center;
+  color: #fff;
+  background: var(--primary);
+  font-size: 1.6rem;
   font-weight: 900;
-  padding: 8px;
-  border-radius: 12px;
-  transition: background 0.15s;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+  transition: transform 0.15s, box-shadow 0.15s;
 }
-.page-arrows .arrow-btn:active { background: var(--primary-light); }
-.page-arrows .arrow-btn.disabled { color: var(--border); pointer-events: none; }
+.page-arrows .arrow-btn:active { transform: scale(0.92); box-shadow: 0 1px 4px rgba(37,99,235,0.2); }
+.page-arrows .arrow-btn.disabled { background: var(--border); color: var(--text-muted); pointer-events: none; box-shadow: none; }
 /* Admin pages: bottom-nav above arrows */
 .page-arrows ~ .bottom-nav {
   bottom: 50px;
