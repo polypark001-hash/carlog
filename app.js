@@ -77,7 +77,8 @@ async function loadFromCloud() {
               drives: mergeRecords(localData.drives || [], cloudData.drives || []),
               fuels: mergeRecords(localData.fuels || [], cloudData.fuels || []),
               maints: mergeRecords(localData.maints || [], cloudData.maints || []),
-              expenses: mergeRecords(localData.expenses || [], cloudData.expenses || [])
+              expenses: mergeRecords(localData.expenses || [], cloudData.expenses || []),
+              consumables: mergeConsumables(localData.consumables || [], cloudData.consumables || [])
             };
             localStorage.setItem('v2_' + row.plate, JSON.stringify(merged));
           } else {
@@ -105,6 +106,19 @@ function mergeRecords(local, cloud) {
     }
   });
   return all;
+}
+
+// 소모품 병합: 이름 기준 중복 제거 (클라우드 우선)
+function mergeConsumables(local, cloud) {
+  const merged = [...cloud];
+  const names = new Set(cloud.map(c => c.name));
+  local.forEach(c => {
+    if (!names.has(c.name)) {
+      merged.push(c);
+      names.add(c.name);
+    }
+  });
+  return merged;
 }
 
 // ===== CONFIG =====
