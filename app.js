@@ -1973,7 +1973,7 @@ function openEditConsumable(idx) {
   document.getElementById('recordModal').classList.add('show');
 }
 
-function saveConsumable(idx) {
+async function saveConsumable(idx) {
   const name = document.getElementById('cs_name').value.trim();
   if (!name) { showToast('소모품명을 입력하세요', 'error'); return; }
 
@@ -1997,18 +1997,20 @@ function saveConsumable(idx) {
   }
 
   saveCarData(state.car, data);
+  await syncAllToCloud();
   closeModal();
-  showToast(idx >= 0 ? '소모품이 수정되었습니다' : '소모품이 등록되었습니다', 'success');
+  alert('저장완료');
   renderConsumablesList();
 }
 
-function deleteConsumable(idx) {
+async function deleteConsumable(idx) {
   if (!confirm('이 소모품을 삭제하시겠습니까?')) return;
   const data = loadCarData(state.car);
   data.consumables.splice(idx, 1);
   saveCarData(state.car, data);
+  await syncAllToCloud();
   closeModal();
-  showToast('소모품이 삭제되었습니다', 'success');
+  alert('삭제완료');
   renderConsumablesList();
 }
 
