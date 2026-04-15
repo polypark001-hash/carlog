@@ -73,12 +73,22 @@ async function loadFromCloud() {
           const localRaw = localStorage.getItem('v2_' + row.plate);
           if (localRaw) {
             const localData = JSON.parse(localRaw);
+            // 삭제 기록 통합
+            const deletedRecords = [
+              ...(localData.deletedRecords || []),
+              ...(cloudData.deletedRecords || [])
+            ];
+            const isDeleted = (type, r) => deletedRecords.some(d =>
+              d.type === type && d.date === r.date && d.driver === r.driver &&
+              d.amount === r.amount && d.course === r.course && d.recType === r.type
+            );
             const merged = {
-              drives: mergeRecords(localData.drives || [], cloudData.drives || []),
-              fuels: mergeRecords(localData.fuels || [], cloudData.fuels || []),
-              maints: mergeRecords(localData.maints || [], cloudData.maints || []),
-              expenses: mergeRecords(localData.expenses || [], cloudData.expenses || []),
-              consumables: mergeConsumables(localData.consumables || [], cloudData.consumables || [])
+              drives: mergeRecords(localData.drives || [], cloudData.drives || []).filter(r => !isDeleted('drives', r)),
+              fuels: mergeRecords(localData.fuels || [], cloudData.fuels || []).filter(r => !isDeleted('fuels', r)),
+              maints: mergeRecords(localData.maints || [], cloudData.maints || []).filter(r => !isDeleted('maints', r)),
+              expenses: mergeRecords(localData.expenses || [], cloudData.expenses || []).filter(r => !isDeleted('expenses', r)),
+              consumables: mergeConsumables(localData.consumables || [], cloudData.consumables || []),
+              deletedRecords
             };
             localStorage.setItem('v2_' + row.plate, JSON.stringify(merged));
           } else {
@@ -1269,16 +1279,25 @@ function renderReportPreview() {
 }
 
 // ===== RECORD DELETE =====
-function deleteRecord(type, index, plate) {
+async function deleteRecord(type, index, plate) {
   if (!confirm('이 기록을 삭제하시겠습니까?')) return;
   const targetPlate = plate || state.car;
   const data = loadCarData(targetPlate);
   const key = { drive: 'drives', fuel: 'fuels', maint: 'maints', expense: 'expenses' }[type];
   if (key && data[key] && data[key][index] !== undefined) {
+    // 삭제한 기록의 키를 deletedRecords에 추가 (다른 기기 병합 시 제외)
+    const rec = data[key][index];
+    if (!data.deletedRecords) data.deletedRecords = [];
+    data.deletedRecords.push({
+      type: key,
+      date: rec.date, driver: rec.driver,
+      amount: rec.amount, course: rec.course, recType: rec.type
+    });
     data[key].splice(index, 1);
     saveCarData(targetPlate, data);
-    showToast('기록이 삭제되었습니다', 'success');
+    await syncAllToCloud();
     closeModal();
+    alert('삭제완료');
     if (state.currentPage === 'driverHistory') loadDriverHistory();
     else if (state.currentPage === 'driverDashboard') showDriverDashboard();
     else if (state.currentPage === 'adminRecords') loadAdminRecords();
