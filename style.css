@@ -608,6 +608,35 @@ textarea.field-input { resize: vertical; min-height: 48px; font-weight: 400; fon
   padding: 16px;
 }
 
+/* ===== Excel Upload Section ===== */
+.excel-upload-section {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border: 1px dashed var(--border-mid);
+  border-radius: var(--radius);
+  text-align: center;
+}
+.excel-upload-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.excel-upload-title i { color: #16A34A; margin-right: 6px; }
+.excel-upload-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.excel-upload-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+.excel-upload-actions .btn { flex: 1; }
+.dark .excel-upload-section { background: #1F2937; border-color: #374151; }
+
 /* ===== Download Buttons ===== */
 .download-buttons {
   display: flex;

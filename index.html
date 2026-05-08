@@ -11,8 +11,9 @@
 <link rel="apple-touch-icon" href="icon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="style.css?v=20260410b">
+<link rel="stylesheet" href="style.css?v=20260508">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2563EB">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -230,6 +231,19 @@ if ('serviceWorker' in navigator) {
         <button class="btn btn-primary btn-full btn-lg btn-save" onclick="saveDrive()">
           주행 기록 저장 <i class="fa-regular fa-floppy-disk"></i>
         </button>
+        <div class="excel-upload-section">
+          <div class="excel-upload-title"><i class="fa-solid fa-file-excel"></i> 엑셀로 일괄 등록</div>
+          <div class="excel-upload-desc">날짜별 주행기록을 엑셀로 한 번에 등록합니다</div>
+          <input type="file" id="driveExcelInput" accept=".xlsx,.xls,.csv" onchange="uploadDriveExcel(this)" hidden>
+          <div class="excel-upload-actions">
+            <button type="button" class="btn btn-outline btn-sm" onclick="downloadDriveTemplate()">
+              <i class="fa-solid fa-download"></i> 샘플 양식
+            </button>
+            <button type="button" class="btn btn-success btn-sm" onclick="document.getElementById('driveExcelInput').click()">
+              <i class="fa-solid fa-upload"></i> 엑셀 업로드
+            </button>
+          </div>
+        </div>
       </form>
 
       <!-- Fuel Form -->
@@ -795,6 +809,6 @@ if ('serviceWorker' in navigator) {
 <!-- Toast -->
 <div id="toast" class="toast"></div>
 
-<script src="app.js?v=20260410b"></script>
+<script src="app.js?v=20260508"></script>
 </body>
 </html>

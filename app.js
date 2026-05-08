@@ -571,6 +571,105 @@ function goBack() {
 }
 
 // ===== SAVE: DRIVE =====
+function downloadDriveTemplate() {
+  if (typeof XLSX === 'undefined') { showToast('엑셀 라이브러리 로딩 실패', 'error'); return; }
+  const sample = [
+    ['날짜', '코스명', '출발계기판', '도착계기판', '비고'],
+    ['2026-05-01', '본사 → 부산경남', 12000, 12350, ''],
+    ['2026-05-02', '본사 → 대전', 12350, 12530, '거래처 미팅']
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(sample);
+  ws['!cols'] = [{ wch: 12 }, { wch: 24 }, { wch: 12 }, { wch: 12 }, { wch: 20 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '주행기록');
+  XLSX.writeFile(wb, '주행기록_양식.xlsx');
+}
+
+function parseExcelDate(v) {
+  if (v === null || v === undefined || v === '') return '';
+  if (v instanceof Date) {
+    const y = v.getFullYear(), m = String(v.getMonth()+1).padStart(2,'0'), d = String(v.getDate()).padStart(2,'0');
+    return `${y}-${m}-${d}`;
+  }
+  if (typeof v === 'number') {
+    const epoch = new Date(Math.round((v - 25569) * 86400 * 1000));
+    if (!isNaN(epoch.getTime())) {
+      const y = epoch.getUTCFullYear(), m = String(epoch.getUTCMonth()+1).padStart(2,'0'), d = String(epoch.getUTCDate()).padStart(2,'0');
+      return `${y}-${m}-${d}`;
+    }
+  }
+  const s = String(v).trim().replace(/\./g, '-').replace(/\//g, '-');
+  const parts = s.split('-').map(p => p.trim()).filter(Boolean);
+  if (parts.length === 3) {
+    const y = parts[0].length === 2 ? '20' + parts[0] : parts[0];
+    return `${y}-${String(parts[1]).padStart(2,'0')}-${String(parts[2]).padStart(2,'0')}`;
+  }
+  return s;
+}
+
+async function uploadDriveExcel(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  if (!state.car || !state.driver) { showToast('로그인 정보가 없습니다', 'error'); input.value=''; return; }
+  if (typeof XLSX === 'undefined') { showToast('엑셀 라이브러리 로딩 실패', 'error'); input.value=''; return; }
+
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '' });
+    if (!rows.length) { showToast('빈 파일입니다', 'error'); input.value=''; return; }
+
+    let startIdx = 0;
+    const first = rows[0].map(c => String(c || '').trim());
+    if (first.some(c => c.includes('날짜') || c.includes('계기판') || c.includes('코스'))) startIdx = 1;
+
+    const data = loadCarData(state.car);
+    const newRecords = [];
+    const errors = [];
+
+    for (let i = startIdx; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row || row.every(c => c === '' || c === null || c === undefined)) continue;
+
+      const date = parseExcelDate(row[0]);
+      const course = String(row[1] || '').trim();
+      const os = String(row[2] ?? '').trim();
+      const oe = String(row[3] ?? '').trim();
+      const note = String(row[4] || '').trim();
+
+      const rowNum = i + 1;
+      if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) { errors.push(`${rowNum}행: 날짜 형식 오류`); continue; }
+      if (!course) { errors.push(`${rowNum}행: 코스명 누락`); continue; }
+      if (!os || isNaN(Number(os))) { errors.push(`${rowNum}행: 출발계기판 오류`); continue; }
+      if (!oe || isNaN(Number(oe))) { errors.push(`${rowNum}행: 도착계기판 오류`); continue; }
+      if (Number(oe) < Number(os)) { errors.push(`${rowNum}행: 도착<출발`); continue; }
+
+      newRecords.push({ date, course, os, oe, note, driver: state.driver });
+    }
+
+    if (!newRecords.length) {
+      showToast(errors.length ? `등록 실패: ${errors[0]}` : '등록할 데이터가 없습니다', 'error');
+      input.value = '';
+      return;
+    }
+
+    data.drives.push(...newRecords);
+    saveCarData(state.car, data);
+    await syncAllToCloud();
+
+    let msg = `${newRecords.length}건 등록 완료`;
+    if (errors.length) msg += ` (${errors.length}건 오류 — ${errors.slice(0,3).join(', ')}${errors.length>3?'...':''})`;
+    alert(msg);
+    input.value = '';
+    goBack();
+  } catch (e) {
+    console.error(e);
+    showToast('엑셀 읽기 실패: ' + (e.message || ''), 'error');
+    input.value = '';
+  }
+}
+
 async function saveDrive() {
   const date = document.getElementById('driveDate').value;
   const course = document.getElementById('driveCourse').value.trim();
