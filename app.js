@@ -574,15 +574,48 @@ function goBack() {
 function downloadDriveTemplate() {
   if (typeof XLSX === 'undefined') { showToast('엑셀 라이브러리 로딩 실패', 'error'); return; }
   const sample = [
-    ['날짜', '코스명', '출발계기판', '도착계기판', '비고'],
-    ['2026-05-01', '본사 → 부산경남', 12000, 12350, ''],
-    ['2026-05-02', '본사 → 대전', 12350, 12530, '거래처 미팅']
+    ['※ 본 서식은 Excel DATA를 자동 변환하기 위한 서식입니다.'],
+    [],
+    ['사업자등록번호', '', '514-81-86049', '', '', '', '', '', '운행기록부 (업무용승용차)'],
+    [],
+    ['1. 기본 정보'],
+    ['①차종', '', '②차량번호', '', '③기초km', '', '④명의구분', '', '유종'],
+    ['카니발', '', '185하6759', '', 121523, '', '0.회사', '', ''],
+    [],
+    ['2. 차량 운행기록 내역'],
+    ['년도', '월', '일', '부서', '성명', '구분', '분류(출)', '출발지명', '주소', '분류(도)', '도착지명', '주소', '주행km', '비고', '누적계기판'],
+    [2026, 5, 1, '유통사업부', '문동훈', '1.출근용', '자택', '', '', '회사', '', '', 30, '', 119663],
+    [2026, 5, 1, '유통사업부', '문동훈', '2.퇴근용', '회사', '', '', '자택', '', '', 30, '', 119693],
+    [2026, 5, 2, '유통사업부', '문동훈', '3.업무용', '회사', '', '', '거래처', '펫프', '', 35, '', 119728],
   ];
   const ws = XLSX.utils.aoa_to_sheet(sample);
-  ws['!cols'] = [{ wch: 12 }, { wch: 24 }, { wch: 12 }, { wch: 12 }, { wch: 20 }];
+  ws['!cols'] = [
+    { wch: 8 }, { wch: 6 }, { wch: 6 }, { wch: 12 }, { wch: 10 }, { wch: 10 },
+    { wch: 10 }, { wch: 12 }, { wch: 14 }, { wch: 10 }, { wch: 12 }, { wch: 14 },
+    { wch: 10 }, { wch: 12 }, { wch: 12 }
+  ];
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, '주행기록');
-  XLSX.writeFile(wb, '주행기록_양식.xlsx');
+  XLSX.utils.book_append_sheet(wb, ws, '운행기록부');
+  XLSX.writeFile(wb, '운행기록부_양식.xlsx');
+}
+
+function findBaseOdoFromRows(rows, headerRowIdx) {
+  for (let i = 0; i < headerRowIdx; i++) {
+    const row = rows[i] || [];
+    for (let j = 0; j < row.length; j++) {
+      if (!String(row[j] || '').includes('기초km')) continue;
+      for (let k = j + 1; k < row.length; k++) {
+        const v = String(row[k] ?? '').replace(/,/g, '').trim();
+        if (v && !isNaN(Number(v)) && Number(v) > 0) return Number(v);
+      }
+      const next = rows[i+1] || [];
+      for (let k = j; k < next.length; k++) {
+        const v = String(next[k] ?? '').replace(/,/g, '').trim();
+        if (v && !isNaN(Number(v)) && Number(v) > 0) return Number(v);
+      }
+    }
+  }
+  return 0;
 }
 
 function parseExcelDate(v) {
@@ -620,30 +653,117 @@ async function uploadDriveExcel(input) {
     const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '' });
     if (!rows.length) { showToast('빈 파일입니다', 'error'); input.value=''; return; }
 
-    let startIdx = 0;
-    const first = rows[0].map(c => String(c || '').trim());
-    if (first.some(c => c.includes('날짜') || c.includes('계기판') || c.includes('코스'))) startIdx = 1;
+    let isCorporate = false;
+    let headerRowIdx = -1;
+    let cols = {};
 
+    for (let i = 0; i < Math.min(rows.length, 30); i++) {
+      const row = (rows[i] || []).map(c => String(c || '').trim());
+      const yIdx = row.indexOf('년도');
+      const mIdx = row.indexOf('월');
+      const dIdx = row.indexOf('일');
+      if (yIdx >= 0 && mIdx >= 0 && dIdx >= 0) {
+        headerRowIdx = i;
+        isCorporate = true;
+        cols = {
+          year: yIdx,
+          month: mIdx,
+          day: dIdx,
+          name: row.indexOf('성명'),
+          type: row.indexOf('구분'),
+          catFrom: row.findIndex(c => c.includes('분류(출)')),
+          nameFrom: row.indexOf('출발지명'),
+          catTo: row.findIndex(c => c.includes('분류(도)')),
+          nameTo: row.indexOf('도착지명'),
+          distance: row.findIndex(c => c.includes('주행km') || c === '주행' || c.includes('주행')),
+          note: row.indexOf('비고'),
+        };
+        break;
+      }
+      if (row.includes('날짜') && row.some(c => c.includes('계기판'))) {
+        headerRowIdx = i;
+        isCorporate = false;
+        break;
+      }
+    }
+
+    if (headerRowIdx < 0) {
+      showToast('형식 인식 실패 — 헤더(년도/월/일 또는 날짜)를 찾을 수 없습니다', 'error');
+      input.value = '';
+      return;
+    }
+
+    const baseOdo = isCorporate ? findBaseOdoFromRows(rows, headerRowIdx) : 0;
     const data = loadCarData(state.car);
     const newRecords = [];
     const errors = [];
+    let prevOe = 0;
+    let usedFinalOdoCol = false;
 
-    for (let i = startIdx; i < rows.length; i++) {
+    for (let i = headerRowIdx + 1; i < rows.length; i++) {
       const row = rows[i];
       if (!row || row.every(c => c === '' || c === null || c === undefined)) continue;
-
-      const date = parseExcelDate(row[0]);
-      const course = String(row[1] || '').trim();
-      const os = String(row[2] ?? '').trim();
-      const oe = String(row[3] ?? '').trim();
-      const note = String(row[4] || '').trim();
-
       const rowNum = i + 1;
-      if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) { errors.push(`${rowNum}행: 날짜 형식 오류`); continue; }
-      if (!course) { errors.push(`${rowNum}행: 코스명 누락`); continue; }
-      if (!os || isNaN(Number(os))) { errors.push(`${rowNum}행: 출발계기판 오류`); continue; }
-      if (!oe || isNaN(Number(oe))) { errors.push(`${rowNum}행: 도착계기판 오류`); continue; }
-      if (Number(oe) < Number(os)) { errors.push(`${rowNum}행: 도착<출발`); continue; }
+
+      let date, course, os, oe, note;
+
+      if (isCorporate) {
+        const y = String(row[cols.year] ?? '').trim();
+        const m = String(row[cols.month] ?? '').trim();
+        const d = String(row[cols.day] ?? '').trim();
+        if (!y || !m || !d) { errors.push(`${rowNum}행: 년/월/일 누락`); continue; }
+        const yy = y.length === 2 ? '20' + y : y;
+        date = `${yy}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { errors.push(`${rowNum}행: 날짜 형식 오류`); continue; }
+
+        const catFrom = String(row[cols.catFrom] ?? '').trim();
+        const nameFrom = String(row[cols.nameFrom] ?? '').trim();
+        const catTo = String(row[cols.catTo] ?? '').trim();
+        const nameTo = String(row[cols.nameTo] ?? '').trim();
+        const start = nameFrom || catFrom;
+        const end = nameTo || catTo;
+        if (!start || !end) { errors.push(`${rowNum}행: 출/도착지 누락`); continue; }
+        course = `${start} → ${end}`;
+
+        const distRaw = String(row[cols.distance] ?? '').replace(/,/g, '').trim();
+        const distance = Number(distRaw);
+        if (!distance || distance <= 0) { errors.push(`${rowNum}행: 주행km 오류`); continue; }
+
+        const typeText = String(row[cols.type] ?? '').trim();
+        const noteText = String(row[cols.note] ?? '').trim();
+        const noteFiltered = (noteText === '1' || noteText === '0') ? '' : noteText;
+        note = [typeText, noteFiltered].filter(Boolean).join(' / ');
+
+        let oeNum = null;
+        if (cols.note >= 0) {
+          for (let col = cols.note + 1; col < row.length; col++) {
+            const v = String(row[col] ?? '').replace(/,/g, '').trim();
+            if (v && !isNaN(Number(v)) && Number(v) > 0) { oeNum = Number(v); break; }
+          }
+        }
+        if (oeNum !== null) {
+          usedFinalOdoCol = true;
+          oe = String(oeNum);
+          os = String(prevOe > 0 ? prevOe : (oeNum - distance));
+          prevOe = oeNum;
+        } else {
+          const startOdo = prevOe > 0 ? prevOe : baseOdo;
+          os = String(startOdo);
+          oe = String(startOdo + distance);
+          prevOe = startOdo + distance;
+        }
+      } else {
+        date = parseExcelDate(row[0]);
+        course = String(row[1] || '').trim();
+        os = String(row[2] ?? '').trim();
+        oe = String(row[3] ?? '').trim();
+        note = String(row[4] || '').trim();
+        if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) { errors.push(`${rowNum}행: 날짜 형식 오류`); continue; }
+        if (!course) { errors.push(`${rowNum}행: 코스명 누락`); continue; }
+        if (!os || isNaN(Number(os))) { errors.push(`${rowNum}행: 출발계기판 오류`); continue; }
+        if (!oe || isNaN(Number(oe))) { errors.push(`${rowNum}행: 도착계기판 오류`); continue; }
+        if (Number(oe) < Number(os)) { errors.push(`${rowNum}행: 도착<출발`); continue; }
+      }
 
       newRecords.push({ date, course, os, oe, note, driver: state.driver });
     }
@@ -659,7 +779,13 @@ async function uploadDriveExcel(input) {
     await syncAllToCloud();
 
     let msg = `${newRecords.length}건 등록 완료`;
-    if (errors.length) msg += ` (${errors.length}건 오류 — ${errors.slice(0,3).join(', ')}${errors.length>3?'...':''})`;
+    if (isCorporate) {
+      const firstOs = Number(newRecords[0].os);
+      const lastOe = Number(newRecords[newRecords.length-1].oe);
+      msg += `\n계기판: ${firstOs.toLocaleString('ko-KR')} → ${lastOe.toLocaleString('ko-KR')} km`;
+      if (!usedFinalOdoCol && baseOdo) msg += `\n(기초km ${baseOdo.toLocaleString('ko-KR')}부터 누적)`;
+    }
+    if (errors.length) msg += `\n${errors.length}건 오류: ${errors.slice(0,3).join(', ')}${errors.length>3?'...':''}`;
     alert(msg);
     input.value = '';
     goBack();
