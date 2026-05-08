@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="style.css?v=20260508c">
+<link rel="stylesheet" href="style.css?v=20260508d">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <link rel="manifest" href="manifest.json">
@@ -691,6 +691,11 @@ if ('serviceWorker' in navigator) {
 
       <section class="settings-section">
         <h3 class="settings-group-title">데이터 관리</h3>
+        <button class="settings-item" onclick="forceCloudSync()">
+          <div class="si-icon si-blue"><i class="fa-solid fa-rotate"></i></div>
+          <div class="si-text">클라우드 동기화</div>
+          <i class="fa-solid fa-chevron-right si-arrow"></i>
+        </button>
         <button class="settings-item" onclick="exportMyData()">
           <div class="si-icon si-blue"><i class="fa-solid fa-download"></i></div>
           <div class="si-text">내 기록 CSV 내보내기</div>
@@ -763,6 +768,11 @@ if ('serviceWorker' in navigator) {
 
       <section class="settings-section">
         <h3 class="settings-group-title">앱 정보</h3>
+        <button class="settings-item" onclick="forceCloudSync()">
+          <div class="si-icon si-blue"><i class="fa-solid fa-rotate"></i></div>
+          <div class="si-text">클라우드 동기화</div>
+          <i class="fa-solid fa-chevron-right si-arrow"></i>
+        </button>
         <div class="settings-item static">
           <div class="si-icon si-gray"><i class="fa-solid fa-circle-info"></i></div>
           <div class="si-text">버전</div>
@@ -809,6 +819,6 @@ if ('serviceWorker' in navigator) {
 <!-- Toast -->
 <div id="toast" class="toast"></div>
 
-<script src="app.js?v=20260508c"></script>
+<script src="app.js?v=20260508d"></script>
 </body>
 </html>

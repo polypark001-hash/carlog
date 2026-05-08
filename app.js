@@ -3,6 +3,7 @@
    ========================================= */
 
 // ===== SUPABASE =====
+const APP_VERSION = '20260508d';
 const SUPABASE_URL = 'https://elnzubbhnhtvsaaeujaq.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVsbnp1YmJobmh0dnNhYWV1amFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNDE4MzgsImV4cCI6MjA5MDgxNzgzOH0.egoND8InKArZaIk-PNREWkDWrj8FssD-MLgy5AWVJHs';
 var db = null;
@@ -114,6 +115,35 @@ async function refreshCloudData() {
     console.warn('클라우드 새로고침 실패:', e);
     return false;
   }
+}
+
+async function clearRuntimeCaches() {
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    if (window.caches) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+    localStorage.setItem('carlog_app_version', APP_VERSION);
+  } catch (e) {
+    console.warn('캐시 정리 실패:', e);
+  }
+}
+
+async function forceCloudSync() {
+  showToast('클라우드 동기화 중입니다...');
+  await clearRuntimeCaches();
+  const ok = await refreshCloudData();
+  renderCarGrid();
+  if (state.role === 'driver' && state.car) {
+    showDriverDashboard();
+  } else if (state.role === 'admin') {
+    showAdminDashboard();
+  }
+  showToast(ok ? '클라우드 동기화 완료' : '클라우드 연결을 확인해주세요', ok ? 'success' : 'error');
 }
 
 // 레코드 병합: 날짜+내용 기준 중복 제거
@@ -2460,6 +2490,9 @@ function setupSwipe() {
 // ===== INIT =====
 async function init() {
   initDarkMode();
+  if (localStorage.getItem('carlog_app_version') !== APP_VERSION) {
+    await clearRuntimeCaches();
+  }
 
   // Load from cloud (non-blocking)
   await refreshCloudData();

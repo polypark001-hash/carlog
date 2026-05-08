@@ -26,3 +26,35 @@ assert.match(
   /else if \(tab === 'records'\) \{\s*await refreshCloudData\(\);/,
   'opening admin records should refresh cloud data before reading local storage'
 );
+
+assert.match(
+  app,
+  /const APP_VERSION = '20260508d';/,
+  'app should expose a version marker that mobile browsers can compare'
+);
+
+assert.match(
+  app,
+  /async function forceCloudSync\(\)/,
+  'app should expose a manual cloud sync action for mobile cache recovery'
+);
+
+assert.match(
+  app,
+  /await clearRuntimeCaches\(\);/,
+  'manual cloud sync should clear runtime caches before refreshing data'
+);
+
+const index = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+
+assert.match(
+  index,
+  /onclick="forceCloudSync\(\)"/,
+  'settings should include a manual cloud sync button'
+);
+
+assert.match(
+  index,
+  /app\.js\?v=20260508d/,
+  'index should request the new app bundle version'
+);
