@@ -104,6 +104,18 @@ async function loadFromCloud() {
   }
 }
 
+async function refreshCloudData() {
+  if (!db) return false;
+  try {
+    const cloudLoaded = await loadFromCloud();
+    if (cloudLoaded) CONFIG = loadConfig();
+    return cloudLoaded;
+  } catch (e) {
+    console.warn('클라우드 새로고침 실패:', e);
+    return false;
+  }
+}
+
 // 레코드 병합: 날짜+내용 기준 중복 제거
 function mergeRecords(local, cloud) {
   const all = [...local];
@@ -296,9 +308,7 @@ function logout() {
 // ===== DRIVER DASHBOARD =====
 async function showDriverDashboard() {
   // 최신 클라우드 데이터 불러오기
-  if (db) {
-    try { await loadFromCloud(); CONFIG = loadConfig(); } catch(e) {}
-  }
+  await refreshCloudData();
   const car = CONFIG.cars.find(c => c.plate === state.car);
   const data = loadCarData(state.car);
   const month = thisMonth();
@@ -460,10 +470,11 @@ async function showDriverDashboard() {
   showPage('driverDashboard');
 }
 
-function switchDriverTab(tab) {
+async function switchDriverTab(tab) {
   if (tab === 'dashboard') {
     showDriverDashboard();
   } else if (tab === 'history') {
+    await refreshCloudData();
     document.getElementById('driverHistMonth').value = thisMonth();
     loadDriverHistory();
     showPage('driverHistory');
@@ -540,7 +551,7 @@ function loadDriverHistory() {
 // ===== FORMS =====
 async function showForm(type) {
   // 최신 데이터 불러오기
-  if (db) { try { await loadFromCloud(); } catch(e) {} }
+  await refreshCloudData();
   document.querySelectorAll('.form-clean').forEach(f => f.style.display = 'none');
   const titles = { drive: '주행 기록 입력', fuel: '주유 기록 입력', maint: '정비 기록 입력', expense: '지출 기록 입력' };
   const subtitles = { drive: '새로운 주행 기록을 입력해주세요', fuel: '주유 내역을 입력해주세요', maint: '정비 내역을 입력해주세요', expense: '지출 내역을 입력해주세요' };
@@ -928,9 +939,7 @@ function setupDriveDistPreview() {
 // ===== ADMIN =====
 async function showAdminDashboard() {
   // 최신 클라우드 데이터 불러오기
-  if (db) {
-    try { await loadFromCloud(); CONFIG = loadConfig(); } catch(e) {}
-  }
+  await refreshCloudData();
   const month = thisMonth();
   let totalDist = 0, totalFuel = 0, totalMaint = 0, totalExp = 0;
   populateCarSelectors();
@@ -1006,9 +1015,10 @@ function populateCarSelectors() {
   });
 }
 
-function switchAdminTab(tab) {
+async function switchAdminTab(tab) {
   if (tab === 'dashboard') showAdminDashboard();
   else if (tab === 'records') {
+    await refreshCloudData();
     document.getElementById('adminRecMonth').value = thisMonth();
     loadAdminRecords();
     showPage('adminRecords');
@@ -2452,12 +2462,7 @@ async function init() {
   initDarkMode();
 
   // Load from cloud (non-blocking)
-  try {
-    if (db) {
-      const cloudLoaded = await loadFromCloud();
-      if (cloudLoaded) CONFIG = loadConfig();
-    }
-  } catch(e) { console.warn('클라우드 동기화 스킵'); }
+  await refreshCloudData();
 
   // 삭제된 차량 강제 정리
   if (!CONFIG.deletedPlates) CONFIG.deletedPlates = [];
