@@ -11,7 +11,12 @@
       "Bash(curl -s \"https://polypark001-hash.github.io/carlog/app.js\")",
       "Bash(curl -sL \"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js\")",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://polypark001-hash.github.io/carlog/app.js\")",
-      "Bash(curl -sL \"https://polypark001-hash.github.io/carlog/app.js\")"
+      "Bash(curl -sL \"https://polypark001-hash.github.io/carlog/app.js\")",
+      "Bash(node --check /c/Users/polyp/Desktop/projects/carlog/app.js)",
+      "Bash(git commit -m ' *)",
+      "Bash(curl -sI https://popaco.shop/)",
+      "Bash(curl -s https://popaco.shop/)",
+      "Bash(curl -s https://popaco.shop/sw.js)"
     ]
   }
 }
